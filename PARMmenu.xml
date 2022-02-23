@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menuDocument>
+    <menu>
+        <subMenu id = "MASSE_PARMmenu_utils">
+        <insertAfter>expression_menu</insertAfter>
+        <label>MASSE Parm Utils</label>
+
+
+            <scriptItem id = "MASSE_spare_parm">
+                <label>Set to spare parameter</label>
+                <expression><![CDATA[
+if hou.getenv("MASSE_PARM_NODE"):
+    return True
+else:
+    return False
+]]>
+                </expression>
+
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).createRelativeReference(assign_to_definition=False)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+        ]]>     </scriptCode>
+            </scriptItem>
+
+
+            <scriptItem id = "MASSE_hda_definition">
+                <label>Set to HDA definition</label>
+                <expression><![CDATA[
+active_path = hou.getenv("MASSE_PARM_NODE")
+if hou.node(active_path):
+    is_hda = hou.node(active_path).type().definition()
+    if is_hda:
+        return True
+return False
+]]>
+                </expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).createRelativeReference(assign_to_definition=True)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+
+
+            <scriptItem id = "MASSE_remove_parm">
+                <label>Remove parm</label>
+                <expression><![CDATA[
+if not isinstance(kwargs["parms"][0].parmTemplate(), hou.FolderSetParmTemplate):
+    return True
+else:
+    return False
+]]>
+                </expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).deleteParm()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
+
+<!-- SET MULTIPARM COUNTER -->
+            <scriptItem id = "MASSE_multiparm_parm">
+                <label>Set as multiparm</label>
+<expression>
+<![CDATA[
+if hou.getenv("MASSE_MULTIPARM_FOLDER"):
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.MultiparmUtils(kwargs).createMultiparmReference()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+
+<!-- SET MULTIPARM FOLDER -->
+            <scriptItem id = "MASSE_set_multiparm_folder">
+                <label>Set as multiparm folder</label>
+<expression><![CDATA[
+parm_temp = kwargs["parms"][0].parmTemplate()
+if isinstance(parm_temp, hou.FolderParmTemplate):
+    if not parm_temp.isActualFolder():
+        return True
+return False
+]]></expression>
+                <scriptCode><![CDATA[
+parm_path = kwargs["parms"][0].path()
+hou.putenv("MASSE_MULTIPARM_FOLDER", parm_path)
+]]>             </scriptCode>
+            </scriptItem>
+
+
+<!-- UNSET MULTIPARM COUNTER -->
+            <scriptItem id = "MASSE_unset_multiparm_folder">
+                <label>Un-set multiparm folder</label>
+<expression><![CDATA[
+if hou.getenv("MASSE_MULTIPARM_FOLDER"):
+    return True
+return False
+]]></expression>
+                <scriptCode><![CDATA[
+hou.unsetenv("MASSE_MULTIPARM_FOLDER")
+]]>             </scriptCode>
+            </scriptItem>
+
+
+
+
+
+
+<separatorItem/>
+
+<!-- Jump to parm reference node, ctrlclick to zoom to selection -->
+            <scriptItem id = "MASSE_referencing_parm">
+                <label>Node referencing this parm</label>
+<expression>
+<![CDATA[
+if kwargs["parms"][0].parmsReferencingThis():
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    ref_node = kwargs["parms"][0].parmsReferencingThis()[-1].node()
+    network_editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if network_editor:
+        network_editor.setCurrentNode(ref_node)
+        if kwargs["ctrlclick"]:
+            network_editor.homeToSelection()
+        if kwargs["altclick"]:
+            ref_node.setGenericFlag(hou.nodeFlag.Display, 1)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+        </subMenu>
+    </menu>
+</menuDocument>
+

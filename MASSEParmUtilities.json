@@ -1,0 +1,13 @@
+{
+    "env":[
+        {
+            "HOUDINI_PATH":[
+                {
+                    "houdini_version >= '19.0' and houdini_python == 'python3'":"$HOUDINI_USER_PREF_DIR/MASSEParmUtilities"
+                }
+            ]
+            }
+
+
+    ]
+}

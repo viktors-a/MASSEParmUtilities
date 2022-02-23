@@ -1,0 +1,5 @@
+# workspaces
+*.code-workspace
+
+# python compiled files
+*.pyc

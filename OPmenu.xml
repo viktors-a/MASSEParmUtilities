@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menuDocument>
+    <menu>
+        <subMenu id="MASSE_OP_parm_menu">
+        <label>MASSE parm node utils</label>
+        <insertAfter>opmenu.parms_and_channels_menu</insertAfter>
+<!-- PARM MENUS -->
+<!-- PARM SET ENV -->
+            <scriptItem id="MASSE_putenv">
+            <label>Set as parm node</label>
+                <scriptCode>
+<![CDATA[
+import hou
+node_path = kwargs['node'].path()
+hou.putenv("MASSE_PARM_NODE",node_path)
+]]>
+                </scriptCode>
+<!-- PARM UNSESET ENV -->
+            </scriptItem>
+            <scriptItem id="MASSE_unsetenv">
+            <expression>hou.getenv("MASSE_PARM_NODE")!=None</expression>
+            <label>Remove parm variable</label>
+                <scriptCode>
+<![CDATA[
+hou.unsetenv("MASSE_PARM_NODE")
+]]> 
+                </scriptCode>
+            </scriptItem>
+
+<!-- PARM JUMP TO -->
+            <scriptItem id="MASSE_locate_parm_env">
+            <expression>hou.getenv("MASSE_PARM_NODE")!=None</expression>
+            <label>Locate parm node</label>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    active_path = hou.getenv("MASSE_PARM_NODE")
+    MASSE_parm_utils.parmUtils.jumpToNode(env= active_path, parm_type= "parm") 
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
+
+<!-- SET MULTIPARM COUNTER -->
+            <scriptItem id = "MASSE_set_multiparm_counter">
+                <label>Set as multiparm counter</label>
+                <expression><![CDATA[
+node = kwargs["node"]
+if node.type().name()=="block_begin":
+    if node.parm("method").evalAsString()=="metadata":
+        return True
+return False
+]]>
+                </expression>
+                <scriptCode><![CDATA[
+node_path = kwargs["node"].path()
+hou.putenv("MASSE_MULTIPARM_COUNTER_NODE", node_path)
+]]>             </scriptCode>
+            </scriptItem>
+
+
+<!-- UNSET MULTIPARM COUNTER -->
+            <scriptItem id = "MASSE_unset_multiparm_counter">
+                <label>Remove multiparm counter</label>
+<expression>
+<![CDATA[
+if hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"):
+    return True
+else:
+    return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+hou.unsetenv("MASSE_MULTIPARM_COUNTER_NODE")
+]]>             </scriptCode>
+            </scriptItem>
+
+<!-- JUMP TO MULTIPARM COUNTER -->
+
+            <scriptItem id = "MASSE_locate_multiparm_counter">
+                <label>Locate  multiparm counter node</label>
+<expression>
+<![CDATA[
+if hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"):
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    active_path = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
+    MASSE_parm_utils.parmUtils.jumpToNode(env= active_path, parm_type= "multiparm counter") 
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+
+<!-- JUMP TO FOLDER NODE -->
+            <scriptItem id = "MASSE_locate_multiparm_folder">
+                <label>Locate multiparm folder node</label>
+<expression>
+<![CDATA[
+if hou.getenv("MASSE_MULTIPARM_FOLDER"):
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    active_path = hou.parm(hou.getenv("MASSE_MULTIPARM_FOLDER")).node().path()
+    MASSE_parm_utils.parmUtils.jumpToNode(env= active_path, parm_type= "multiparm folder node") 
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+        </subMenu>
+    </menu>
+</menuDocument>
