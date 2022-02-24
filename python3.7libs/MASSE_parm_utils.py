@@ -194,6 +194,28 @@ class MultiparmUtils(parmUtils):
         if folder_str:
             return hou.parm(folder_str)
 
+    @staticmethod
+    def createMultiParmCounterExpr(counter_node: hou.Node, mp_folder: hou.Parm) -> None:
+        end_node_rel = counter_node.parm("blockpath").eval()
+        end_node_name = re.search(r"\w+", end_node_rel).group()
+# get end block node object
+        parent = counter_node.parent().path()
+        end_node_path = f"{parent}/{end_node_name}"
+        end_node_obj = hou.node(end_node_path)
+
+        mp_node = mp_folder.node()
+        rel_path = mp_node.relativePathTo(end_node_obj)
+
+# set expression for mp folder, to reference end block iteration count
+        mp_folder.setExpression(
+            f"ch(\"{rel_path}/iterations\")", hou.exprLanguage.Hscript)
+# make sure that start index of multi parms and start value of for loop, are synchronized
+        start_index = mp_folder.multiParmStartOffset()
+        end_node_index = end_node_obj.parm("startvalue").eval()
+        if start_index != end_node_index:
+            end_node_obj.setParms({"startvalue": start_index})
+
+
     def createMultiparmReference(self):
         if not self.envNode_multiparm_folder.containingFolders() and self.envNode_multi_counter:
             mp_folder = self.envNode_multiparm_folder

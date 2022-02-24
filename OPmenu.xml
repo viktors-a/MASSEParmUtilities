@@ -57,8 +57,14 @@ return False
 ]]>
                 </expression>
                 <scriptCode><![CDATA[
-node_path = kwargs["node"].path()
+import MASSE_parm_utils
+counter_node = kwargs["node"]
+node_path = counter_node.path()
 hou.putenv("MASSE_MULTIPARM_COUNTER_NODE", node_path)
+mp_folder = hou.getenv("MASSE_MULTIPARM_FOLDER")
+if mp_folder:
+    mp_folder = hou.parm(mp_folder)
+    block_end = MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(counter_node, mp_folder)
 ]]>             </scriptCode>
             </scriptItem>
 
@@ -119,6 +125,24 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
+
+
+
+            <scriptItem id = "masse_test">
+                <label>Test_script</label>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    import importlib
+    importlib.reload(MASSE_parm_utils)
+    MASSE_parm_utils.MultiparmUtils.createMultiparmExpression(kwargs)
+    print(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+
+
         </subMenu>
     </menu>
 </menuDocument>

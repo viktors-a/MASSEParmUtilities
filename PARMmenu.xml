@@ -98,11 +98,18 @@ if isinstance(parm_temp, hou.FolderParmTemplate):
 return False
 ]]></expression>
                 <scriptCode><![CDATA[
-parm_path = kwargs["parms"][0].path()
+import MASSE_parm_utils
+mp_folder = kwargs["parms"][0]
+parm_path = mp_folder.path()
 hou.putenv("MASSE_MULTIPARM_FOLDER", parm_path)
+mp_counter = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
+# if counter node variable is present, create expression referencing count
+if mp_counter:
+    conter_node = hou.node(mp_counter)
+    block_end = MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(conter_node, mp_folder)
+
 ]]>             </scriptCode>
             </scriptItem>
-
 
 <!-- UNSET MULTIPARM COUNTER -->
             <scriptItem id = "MASSE_unset_multiparm_folder">
@@ -116,11 +123,6 @@ return False
 hou.unsetenv("MASSE_MULTIPARM_FOLDER")
 ]]>             </scriptCode>
             </scriptItem>
-
-
-
-
-
 
 <separatorItem/>
 
@@ -148,7 +150,21 @@ def runLater():
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
-            </scriptItem>
+                </scriptItem>
+<!-- FOO MENU TO RUN TEST -->
+            <!-- </scriptItem>
+            <scriptItem id = "masse_test">
+                <label>Test_script</label>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    import importlib
+    importlib.reload(MASSE_parm_utils)
+    MASSE_parm_utils.MultiparmUtils.createMultiparmExpression(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem> -->
         </subMenu>
     </menu>
 </menuDocument>
