@@ -69,22 +69,6 @@ if mp_folder:
             </scriptItem>
 
 
-<!-- UNSET MULTIPARM COUNTER -->
-            <scriptItem id = "MASSE_unset_multiparm_counter">
-                <label>Remove multiparm counter</label>
-<expression>
-<![CDATA[
-if hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"):
-    return True
-else:
-    return False
-]]>
-</expression>
-                <scriptCode><![CDATA[
-hou.unsetenv("MASSE_MULTIPARM_COUNTER_NODE")
-]]>             </scriptCode>
-            </scriptItem>
-
 <!-- JUMP TO MULTIPARM COUNTER -->
 
             <scriptItem id = "MASSE_locate_multiparm_counter">

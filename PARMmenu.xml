@@ -111,19 +111,6 @@ if mp_counter:
 ]]>             </scriptCode>
             </scriptItem>
 
-<!-- UNSET MULTIPARM COUNTER -->
-            <scriptItem id = "MASSE_unset_multiparm_folder">
-                <label>Un-set multiparm folder</label>
-<expression><![CDATA[
-if hou.getenv("MASSE_MULTIPARM_FOLDER"):
-    return True
-return False
-]]></expression>
-                <scriptCode><![CDATA[
-hou.unsetenv("MASSE_MULTIPARM_FOLDER")
-]]>             </scriptCode>
-            </scriptItem>
-
 <separatorItem/>
 
 <!-- Jump to parm reference node, ctrlclick to zoom to selection -->
