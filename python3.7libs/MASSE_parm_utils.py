@@ -105,7 +105,6 @@ class parmUtils():
         if base_parm.namingScheme() in parmUtils.invalidSchemes():
             base_parm.setNamingScheme(hou.parmNamingScheme.Base1)
 
-            
         return base_parm
 
     def createRelativeReference(self, assign_to_definition: bool = True) -> None:
@@ -209,12 +208,26 @@ class MultiparmUtils(parmUtils):
 # set expression for mp folder, to reference end block iteration count
         mp_folder.setExpression(
             f"ch(\"{rel_path}/iterations\")", hou.exprLanguage.Hscript)
-# make sure that start index of multi parms and start value of for loop, are synchronized
-        start_index = mp_folder.multiParmStartOffset()
-        end_node_index = end_node_obj.parm("startvalue").eval()
-        if start_index != end_node_index:
-            end_node_obj.setParms({"startvalue": start_index})
 
+    @staticmethod
+    def setMultiParmFirstInstance(mp_folder: hou.Parm) -> None:
+        node = mp_folder.node()
+        folder_template = mp_folder.parmTemplate()
+        folder_name = folder_template.name()
+        tags = folder_template.tags()
+        offset = tags.get("multistartoffset")
+        if offset != "0":
+            tags["multistartoffset"] = "0"
+        if mp_folder.isSpare():
+            group = node.parmTemplateGroup()
+            set_on = node
+        else:
+            set_on = node.type().definition()
+            group = set_on.parmTemplateGroup()
+        template = group.find(folder_name)
+        template.setTags(tags)
+        group.replace(folder_name, template)
+        set_on.setParmTemplateGroup(group)
 
     def createMultiparmReference(self):
         if not self.envNode_multiparm_folder.containingFolders() and self.envNode_multi_counter:
@@ -242,7 +255,7 @@ class MultiparmUtils(parmUtils):
             path_to_attrib = self.parm_node.relativePathTo(
                 self.envNode_multi_counter)
             # get attrib reference
-            attrib_ref = f"detail(\"{path_to_attrib}\",\"ivalue\",0)"
+            attrib_ref = f"detail(\"{path_to_attrib}\",\"iteration\",0)"
             # exact name of the parm user has just added to the multiparm folder
             parm_to_ref = set_on.parmTemplateGroup().find(
                 mp_folder_name).parmTemplates()[-1].name()

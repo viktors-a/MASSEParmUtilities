@@ -102,6 +102,8 @@ import MASSE_parm_utils
 mp_folder = kwargs["parms"][0]
 parm_path = mp_folder.path()
 hou.putenv("MASSE_MULTIPARM_FOLDER", parm_path)
+# set multistartoffset to 0, to make sure its in sync with multiparm iterations attribute
+MASSE_parm_utils.MultiparmUtils.setMultiParmFirstInstance(mp_folder)
 mp_counter = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
 # if counter node variable is present, create expression referencing count
 if mp_counter:
