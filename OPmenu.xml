@@ -64,7 +64,7 @@ hou.putenv("MASSE_MULTIPARM_COUNTER_NODE", node_path)
 mp_folder = hou.getenv("MASSE_MULTIPARM_FOLDER")
 if mp_folder:
     mp_folder = hou.parm(mp_folder)
-    block_end = MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(counter_node, mp_folder)
+    MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(counter_node, mp_folder)
 ]]>             </scriptCode>
             </scriptItem>
 

@@ -202,12 +202,13 @@ class MultiparmUtils(parmUtils):
         end_node_path = f"{parent}/{end_node_name}"
         end_node_obj = hou.node(end_node_path)
 
-        mp_node = mp_folder.node()
-        rel_path = mp_node.relativePathTo(end_node_obj)
+        iter_parm = end_node_obj.parm("iterations")
+        rel_path = end_node_obj.relativePathTo(mp_folder.node())
 
+        mp_folder_name = mp_folder.name()
 # set expression for mp folder, to reference end block iteration count
-        mp_folder.setExpression(
-            f"ch(\"{rel_path}/iterations\")", hou.exprLanguage.Hscript)
+        iter_parm.setExpression(
+            f"ch(\"{rel_path}/{mp_folder_name}\")", hou.exprLanguage.Hscript)
 
     @staticmethod
     def setMultiParmFirstInstance(mp_folder: hou.Parm) -> None:

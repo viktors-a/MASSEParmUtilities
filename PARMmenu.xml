@@ -108,7 +108,7 @@ mp_counter = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
 # if counter node variable is present, create expression referencing count
 if mp_counter:
     conter_node = hou.node(mp_counter)
-    block_end = MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(conter_node, mp_folder)
+    MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(conter_node, mp_folder)
 
 ]]>             </scriptCode>
             </scriptItem>
