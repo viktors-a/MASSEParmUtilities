@@ -74,7 +74,10 @@ hdefereval.executeDeferred(runLater)
 <expression>
 <![CDATA[
 if hou.getenv("MASSE_MULTIPARM_FOLDER"):
-    return True
+    mp_node = hou.parm(hou.getenv("MASSE_MULTIPARM_FOLDER")).node()
+    parm_node= kwargs["parms"][0].node()
+    if mp_node != parm_node:
+        return True
 return False
 ]]>
 </expression>
