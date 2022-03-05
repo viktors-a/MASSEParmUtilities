@@ -15,17 +15,6 @@ node_path = kwargs['node'].path()
 hou.putenv("MASSE_PARM_NODE",node_path)
 ]]>
                 </scriptCode>
-<!-- PARM UNSESET ENV -->
-            </scriptItem>
-            <scriptItem id="MASSE_unsetenv">
-            <expression>hou.getenv("MASSE_PARM_NODE")!=None</expression>
-            <label>Remove parm variable</label>
-                <scriptCode>
-<![CDATA[
-hou.unsetenv("MASSE_PARM_NODE")
-]]> 
-                </scriptCode>
-            </scriptItem>
 
 <!-- PARM JUMP TO -->
             <scriptItem id="MASSE_locate_parm_env">
