@@ -8,7 +8,7 @@ class HoudiniError(Exception):
     """Display message in houdini"""
 
 
-def allParmTemplateNames(group_or_folder: hou.Node) -> Iterable[str]:
+def allParmTemplateNames(group_or_folder: hou.ParmTemplateGroup) -> Iterable[str]:
     '''Generator of parm names'''
     for parm_template in group_or_folder.parmTemplates():
         yield parm_template.name()
@@ -229,6 +229,33 @@ class MultiparmUtils(parmUtils):
         template.setTags(tags)
         group.replace(folder_name, template)
         set_on.setParmTemplateGroup(group)
+
+    @staticmethod
+    def createSpareCounterReference(kwargs):
+        node = kwargs["node"]
+        group = node.parmTemplateGroup()
+        invalid_parms = MultiparmUtils.allNodeParms(node)
+        base_spare = None
+        for id in itertools.count(0):
+            base_spare = f"spare_input{id}"
+            if base_spare not in invalid_parms:
+                break
+        spare_parm = hou.StringParmTemplate(
+            base_spare, base_spare, 1, string_type=hou.stringParmType.NodeReference)
+        # set up tags and help
+        parm_id = int(re.search("\d+", base_spare).group()) + 1
+        help = f"Refer to this in expressions as -{parm_id}, such as: npoints(-{parm_id})"
+        spare_tags = {"opfilter": "!!SOP!!",
+                      "oprelative": ".", "cook_dependent": "1"}
+        # set tags and help
+        spare_parm.setHelp(help)
+        spare_parm.setTags(spare_tags)
+        group.append(spare_parm)
+        node.setParmTemplateGroup(group, rename_conflicting_parms=True)
+
+        counter = hou.node(hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"))
+        rel_path = node.relativePathTo(counter)
+        node.parm(base_spare).set(rel_path)
 
     def createMultiparmReference(self):
         if not self.envNode_multiparm_folder.containingFolders() and self.envNode_multi_counter:

@@ -111,20 +111,36 @@ hdefereval.executeDeferred(runLater)
             </scriptItem>
 
 
+            <scriptItem id = "MASSE_spare_counter_reference">
+                <label>Make spare counter reference</label>
+<expression>
+<![CDATA[
+if hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"):
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.MultiparmUtils.createSpareCounterReference(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
 
-            <scriptItem id = "masse_test">
+            <!-- <scriptItem id = "masse_test">
                 <label>Test_script</label>
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
     import importlib
     importlib.reload(MASSE_parm_utils)
-    MASSE_parm_utils.MultiparmUtils.createMultiparmExpression(kwargs)
-    print(kwargs)
+    MASSE_parm_utils.MultiparmUtils.createSpareCounterReference(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
-            </scriptItem>
+            </scriptItem> -->
 
 
         </subMenu>
