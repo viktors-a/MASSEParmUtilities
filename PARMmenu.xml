@@ -119,6 +119,17 @@ if mp_counter:
             </scriptItem>
 
 <!-- CREATE SPARE PARMS -->
+            <scriptItem id = "MASSE_new_spare_parm_float_5_5">
+                <label>Create spare parm FLOAT [-5|5]</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=-5,max=5)
+
+]]>             </scriptCode>
+            </scriptItem>
+
 
             <scriptItem id = "MASSE_new_spare_parm_float_1_1">
                 <label>Create spare parm FLOAT [-1|1]</label>

@@ -86,30 +86,33 @@ class parmUtils():
     @staticmethod
     def createSpareParmFromExpression(parms: Tuple, parm_type: hou.ParmTemplate, min: int = 1, max: int = 10):
         re_expr = re.compile(
-            r"(?P<ch_type>chs?)\((?:'|\")(?P<parm_name>.+)(?:'|\")\)")
+            r"(?P<ch_type>chs?)\((?:'|\")(?P<parm_name>[A-Za-z0-9_ ]+)(?:'|\")\)")
         for parm in parms:
-            # get expression parm name
-            parm_temp = parm.parmTemplate()
-            parm_expr = None
-            node = parm.node()
-            if isinstance(parm_temp, hou.StringParmTemplate):
-                parm_expr = parm.unexpandedString()
-            else:
-                try:
-                    parm_expr = parm.expression()
-                except hou.OperationFailed:
-                    raise HoudiniError("No expression found")
-            re_match = re.search(re_expr, parm_expr)
-            if re_match:
-                parm_name = re_match.group("parm_name").strip()
-                group = node.parmTemplateGroup()
-                if not parm_type == hou.StringParmTemplate:
-                    new_parm = parm_type(
-                        parm_name, parm_name, 1, (0,), min, max)
+            if not parm.getReferencedParm() != parm:
+                # get expression parm name
+                parm_temp = parm.parmTemplate()
+                parm_expr = None
+                node = parm.node()
+                if isinstance(parm_temp, hou.StringParmTemplate):
+                    parm_expr = parm.unexpandedString()
                 else:
-                    new_parm = parm_type(parm_name, parm_name, 1)
-                group.append(new_parm)
-                node.setParmTemplateGroup(group)
+                    try:
+                        parm_expr = parm.expression()
+                    except hou.OperationFailed:
+                        raise HoudiniError("No expression found")
+                re_match = re.search(re_expr, parm_expr)
+                if re_match:
+                    parm_name = re_match.group("parm_name").strip()
+                    group = node.parmTemplateGroup()
+                    if not parm_type == hou.StringParmTemplate:
+                        new_parm = parm_type(
+                            parm_name, parm_name, 1, (0,), min, max)
+                    else:
+                        new_parm = parm_type(parm_name, parm_name, 1)
+                    group.append(new_parm)
+                    node.setParmTemplateGroup(group)
+            else:
+                raise HoudiniError("Parm is controlled by some other parm")
 
     # invalid parm schemes objects for parm conversion
     @staticmethod
