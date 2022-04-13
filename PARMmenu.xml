@@ -123,8 +123,6 @@ if mp_counter:
                 <label>Create spare parm FLOAT [-5|5]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=-5,max=5)
 
 ]]>             </scriptCode>
@@ -135,8 +133,6 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm FLOAT [-1|1]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=-1,max=1)
 
 ]]>             </scriptCode>
@@ -146,8 +142,6 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm FLOAT [0-1]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=1)
 
 ]]>             </scriptCode>
@@ -157,8 +151,6 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm FLOAT [0|10]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=10)
 
 ]]>             </scriptCode>
@@ -170,8 +162,6 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm INT [0-10]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.IntParmTemplate,min=0,max=10)
 
 ]]>             </scriptCode>
@@ -182,8 +172,6 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Int
                 <label>Create spare parm INT [0-100]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.IntParmTemplate,min=0,max=100)
 
 ]]>             </scriptCode>
@@ -194,8 +182,6 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Int
                 <label>Create spare parm STRING</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-import importlib
-importlib.reload(MASSE_parm_utils)
 MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.StringParmTemplate)
 
 ]]>             </scriptCode>
