@@ -118,6 +118,79 @@ if mp_counter:
 ]]>             </scriptCode>
             </scriptItem>
 
+<!-- CREATE SPARE PARMS -->
+
+            <scriptItem id = "MASSE_new_spare_parm_float_1_1">
+                <label>Create spare parm FLOAT [-1|1]</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=-1,max=1)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+            <scriptItem id = "MASSE_new_spare_parm_float_0_1">
+                <label>Create spare parm FLOAT [0-1]</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=1)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+            <scriptItem id = "MASSE_new_spare_parm_float_0_10">
+                <label>Create spare parm FLOAT [0|10]</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=10)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
+
+            <scriptItem id = "MASSE_new_spare_parm_int_0_100">
+                <label>Create spare parm INT [0-10]</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.IntParmTemplate,min=0,max=10)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+
+            <scriptItem id = "MASSE_new_spare_parm_int_0_10">
+                <label>Create spare parm INT [0-100]</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.IntParmTemplate,min=0,max=100)
+
+]]>             </scriptCode>
+            </scriptItem>
+<separatorItem/>
+
+            <scriptItem id = "MASSE_new_spare_parm_string">
+                <label>Create spare parm STRING</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+import importlib
+importlib.reload(MASSE_parm_utils)
+MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.StringParmTemplate)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+
 <separatorItem/>
 
 <!-- Jump to parm reference node, ctrlclick to zoom to selection -->
