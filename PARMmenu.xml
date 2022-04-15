@@ -187,6 +187,16 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Str
 ]]>             </scriptCode>
             </scriptItem>
 
+<separatorItem/>
+
+            <scriptItem id = "MASSE_change_range">
+                <label>Change spare parm range</label>
+                <scriptCode><![CDATA[
+import MASSE_parm_utils
+MASSE_parm_utils.parmUtils.changeRange(kwargs["parms"])
+
+]]>             </scriptCode>
+            </scriptItem>
 
 <separatorItem/>
 

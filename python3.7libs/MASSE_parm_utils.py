@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple, Generator
 import itertools
 import re
 import hou
@@ -84,7 +84,7 @@ class parmUtils():
 
     # using regular expressions, find parm referenced, if parm doesn't exist generate spare parm
     @staticmethod
-    def createSpareParmFromExpression(parms: Tuple, parm_type: hou.ParmTemplate, min: int = 1, max: int = 10):
+    def createSpareParmFromExpression(parms: Tuple, parm_type: hou.ParmTemplate, min: int = 1, max: int = 10) -> None:
         re_expr = re.compile(
             r"(?P<ch_type>chs?)\((?:'|\")(?P<parm_name>[A-Za-z0-9_ ]+)(?:'|\")\)")
         for parm in parms:
@@ -114,9 +114,37 @@ class parmUtils():
             else:
                 raise HoudiniError("Parm is controlled by some other parm")
 
+    @staticmethod
+    def changeRange(parms: Tuple) -> None:
+        for parm in parms:
+            if parm.isSpare():
+                node = parm.node()
+                parm_temp = parm.parmTemplate()
+                if parm_temp.numComponents() == 1:
+                    parm_name = parm_temp.name()
+                    parm_label = parm_temp.label()
+                    new_range = hou.ui.readInput("Input new range")[1].split()
+                    parm_class = parm_temp.__class__
+                    if len(new_range) == 2:
+                        min, max = new_range
+                        min, max = float(min), float(max)
+                        # cast appropriate value type, so parm
+                        if isinstance(parm_temp, hou.IntParmTemplate):
+                            min, max = int(min), int(max)
+                        replace_parm = parm_class(
+                            parm_name, parm_label, 1, (0,), min, max)
+                        group = node.parmTemplateGroup()
+                        group.replace(parm_name,replace_parm)
+                        node.setParmTemplateGroup(group)
+                else:
+                    raise HoudiniError(
+                        "Range change only supported for 1D float/integer values")
+            else:
+                raise HoudiniError("Not a spare parm")
+
     # invalid parm schemes objects for parm conversion
     @staticmethod
-    def invalidSchemes():
+    def invalidSchemes() -> Generator:
         schemes = ("XYWH", "BeginEnd", "StartEnd", "MinMax", "MaxMin")
         for scheme in schemes:
             yield getattr(hou.parmNamingScheme, scheme)
