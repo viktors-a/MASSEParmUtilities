@@ -164,7 +164,8 @@ class parmUtils():
         # to not throw an error when user creates references from unsupported parms, convert parm to supported
         if base_parm.namingScheme() in parmUtils.invalidSchemes():
             base_parm.setNamingScheme(hou.parmNamingScheme.Base1)
-
+            
+        base_parm.setConditional(hou.parmCondType.HideWhen, "")
         return base_parm
 
     def createRelativeReference(self, assign_to_definition: bool = True) -> None:
