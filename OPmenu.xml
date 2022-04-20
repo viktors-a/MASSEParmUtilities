@@ -104,7 +104,7 @@ hdefereval.executeDeferred(runLater)
                 <label>Make spare counter reference</label>
 <expression>
 <![CDATA[
-if hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"):
+if len(hou.selectedNodes()) == 2:
     return True
 return False
 ]]>

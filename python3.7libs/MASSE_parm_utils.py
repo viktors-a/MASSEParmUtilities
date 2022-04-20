@@ -313,9 +313,13 @@ class MultiparmUtils(parmUtils):
         spare_parm.setTags(spare_tags)
         group.append(spare_parm)
         node.setParmTemplateGroup(group, rename_conflicting_parms=True)
+        # set relative reference to a node
+        spare_input_node = None
+        for sel_node in hou.selectedNodes():
+            if sel_node != node:
+                spare_input_node = sel_node
 
-        counter = hou.node(hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"))
-        rel_path = node.relativePathTo(counter)
+        rel_path = node.relativePathTo(spare_input_node)
         node.parm(base_spare).set(rel_path)
 
     def createMultiparmReference(self):
