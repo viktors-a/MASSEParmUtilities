@@ -100,19 +100,20 @@ class parmUtils():
                         parm_expr = parm.expression()
                     except hou.OperationFailed:
                         raise HoudiniError("No expression found")
-                re_match = re.search(re_expr, parm_expr)
+                re_match = re.findall(re_expr, parm_expr)
                 if re_match:
-                    parm_name = re_match.group("parm_name").strip()
-                    group = node.parmTemplateGroup()
-                    if not parm_type == hou.StringParmTemplate:
-                        new_parm = parm_type(
-                            parm_name, parm_name, 1, (0,), min, max)
-                    else:
-                        new_parm = parm_type(parm_name, parm_name, 1)
-                    group.append(new_parm)
-                    node.setParmTemplateGroup(group)
-            else:
-                raise HoudiniError("Parm is controlled by some other parm")
+                    for parm in re_match:
+                        parm_name = parm[1].strip()
+                        group = node.parmTemplateGroup()
+                        if not parm_type == hou.StringParmTemplate:
+                            new_parm = parm_type(
+                                parm_name, parm_name, 1, (0,), min, max)
+                        else:
+                            new_parm = parm_type(parm_name, parm_name, 1)
+                        group.append(new_parm)
+                        node.setParmTemplateGroup(group)
+                else:
+                    raise HoudiniError("Parm is controlled by some other parm")
 
     @staticmethod
     def changeRange(parms: Tuple) -> None:
