@@ -149,6 +149,31 @@ class parmUtils():
         for scheme in schemes:
             yield getattr(hou.parmNamingScheme, scheme)
 
+    @staticmethod
+    def renameParms(kwargs):
+        node = kwargs["node"]
+        group = node.parmTemplateGroup()
+        spare_names = [parm.parmTemplate().name()
+                       for parm in node.spareParms()]
+        all_templates = group.entries() + group.entriesWithoutFolders()
+        for parm in all_templates:
+            parm_name = parm.name()
+            if parm_name in spare_names:
+                original_parm = parm.name()
+                parm_name = re.sub(r'\d+', '', original_parm)
+                label = parm_name.replace("_", " ").title()
+                parm.setLabel(label)
+                group.replace(original_parm, parm)
+        node.setParmTemplateGroup(group)
+
+
+
+
+
+
+
+
+
     def valid_temp(self, invalid_parm_node: hou.Node) -> hou.ParmTemplate:
         base_parm = self._parm
         name = base_parm.name()
