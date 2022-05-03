@@ -129,6 +129,19 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
+
+            <scriptItem id = "MASSE_batch_rename">
+                <label>Rename multiple nodes</label>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    from importlib import reload
+    reload(MASSE_parm_utils)
+    MASSE_parm_utils.parmUtils.renameNodes()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
             <!-- <scriptItem id = "masse_test">
                 <label>Test_script</label>
                 <scriptCode><![CDATA[

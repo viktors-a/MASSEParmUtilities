@@ -59,6 +59,28 @@ class parmUtils():
         return self.parm_node.relativePathTo(self.envNode_parm)
 
     @staticmethod
+    #retuns number of nodes matched by re expression in a provided network path
+    def nodeCountMatch(node_path: str, re_expr: str) -> int:
+        mat_net = hou.node(node_path)
+        all_contets = mat_net.children()
+        match = re.compile(re_expr)
+        valid_nodes = {
+            node for node in all_contets if re.findall(match, node.name())}
+        return len(valid_nodes)
+
+    @staticmethod
+    # renames nodes to same name, but a differet index
+    def renameNodes():
+        nodes = hou.selectedNodes()
+        if len(nodes) > 1:
+            input = hou.ui.readInput(
+                "Nodes name", buttons=("Rename", "Cancel"))
+            if input[0] == 0:
+                for node in nodes:
+                    node.setName("".join((input[1], "0")), unique_name=True)
+
+
+    @staticmethod
     # combines both the spare parms and definition parms
     def allNodeParms(node: hou.Node) -> Iterable[str]:
         to_check = [node.parmTemplateGroup(), ]
@@ -166,14 +188,6 @@ class parmUtils():
                 parm.setLabel(label)
                 group.replace(original_parm, parm)
         node.setParmTemplateGroup(group)
-
-
-
-
-
-
-
-
 
     def valid_temp(self, invalid_parm_node: hou.Node) -> hou.ParmTemplate:
         base_parm = self._parm
