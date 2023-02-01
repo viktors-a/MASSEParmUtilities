@@ -3,3 +3,8 @@
 
 # python compiled files
 *.pyc
+
+# ignore pycharm user specific files
+
+.idea/
+*.iml
