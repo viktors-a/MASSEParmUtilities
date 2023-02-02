@@ -1,3 +1,7 @@
+"""
+Author: Viktors Anfimovs
+Email: houdinielement@gmail.com
+"""
 import os
 import hou
 from PySide2.QtCore import QFile
@@ -11,7 +15,7 @@ class HoudiniError(Exception):
     """Display message in houdini"""
 
 
-ui_file_path = r"../ui/group_rename"
+ui_file_path = os.path.join(os.path.dirname(__file__), "ui/group_renamer.ui")
 
 
 class masseCreateRenamerUI:
@@ -38,6 +42,7 @@ class masseCreateRenamerUI:
         self.rename_button = self.the_main_widget.findChildren(QPushButton, "renameButton")[0]
         self.current_node_label = self.the_main_widget.findChildren(QLabel, "currentNodeButton")[0]
         self.shading_mode = None
+
         def group_vertical_layout():
             # get current viewport
             try:
@@ -60,7 +65,7 @@ class masseCreateRenamerUI:
             self.groups = [prim_group for prim_group in getattr(self.geometry,
                                                                        f"{self.current_group_type}Groups")()]
             if self.groups:
-                #set current node label
+                # set current node label
                 self.current_node_label.setText(f"CURRENT NODE: {self.node.path()}")
                 # call screenshot methode
                 root_screensot_path = self.get_screenshot_path()
@@ -79,9 +84,7 @@ class masseCreateRenamerUI:
                 self.shading_mode = self.the_main_widget.findChildren(QComboBox, "shadingModeComboBox")[0]
                 sel_object_shading = self.viewport.settings().displaySet(hou.displaySetType.DisplayModel)
                 current_shading_mode = sel_object_shading.shadedMode()
-                print(self.shading_mode.currentIndex())
                 if self.shading_mode.currentIndex() == 0:
-                    print("this_ran")
                     sel_object_shading.setShadedMode(hou.glShadingType.WireGhost)
                 #  make sure node has display flag in
                 self.node.setGenericFlag(hou.nodeFlag.Display, 1)

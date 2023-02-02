@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<menuDocument>
+    <!-- menuDocument can only contain 1 menu element, whose id is 
+         implicitly "root_menu"
+      -->
+    <menu>
+        <subMenu id="MASSE_pane_tabs">
+
+            <label>MASSE pane tabs</label>
+            
+            <actionItem id="pythonpanel::MASSE_group_rename">
+                <label>MASSE group rename</label>
+            </actionItem>
+
+        </subMenu>
+    </menu>
+</menuDocument>
