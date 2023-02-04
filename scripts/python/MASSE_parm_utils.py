@@ -415,3 +415,5 @@ class MultiparmUtils(parmUtils):
                 full_expr = f"{self.channelType}(strcat(\"{path_to_multi_folder}/\", {parm_str}))"
                 parm.setExpression(
                     full_expr, language=hou.exprLanguage.Hscript)
+
+

@@ -7,8 +7,6 @@
  in a single file. -->
   <interface name="MASSE_group_rename" label="MASSE Group rename" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[import MASSE_widgets.group_renamer as renamer
-from importlib import reload
-reload(renamer)
 
 
 def onCreateInterface():

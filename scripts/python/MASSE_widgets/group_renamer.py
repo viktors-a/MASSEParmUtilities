@@ -157,6 +157,7 @@ class masseCreateRenamerUI:
                 self.scroll_area.setWidget(group_vertical_widget)
                 # unlock the camera
                 self.viewport.lockCameraToView(False)
+                sel_object_shading.setShadedMode(current_shading_mode)
 
         # generate entries when button is pressed]
         def rename_groups():
