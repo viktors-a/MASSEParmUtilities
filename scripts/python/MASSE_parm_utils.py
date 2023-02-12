@@ -59,7 +59,7 @@ class parmUtils():
         return self.parm_node.relativePathTo(self.envNode_parm)
 
     @staticmethod
-    #retuns number of nodes matched by re expression in a provided network path
+    # retuns number of nodes matched by re expression in a provided network path
     def nodeCountMatch(node_path: str, re_expr: str) -> int:
         mat_net = hou.node(node_path)
         all_contets = mat_net.children()
@@ -78,7 +78,6 @@ class parmUtils():
             if input[0] == 0:
                 for node in nodes:
                     node.setName("".join((input[1], "0")), unique_name=True)
-
 
     @staticmethod
     # combines both the spare parms and definition parms
@@ -157,7 +156,7 @@ class parmUtils():
                         replace_parm = parm_class(
                             parm_name, parm_label, 1, (0,), min, max)
                         group = node.parmTemplateGroup()
-                        group.replace(parm_name,replace_parm)
+                        group.replace(parm_name, replace_parm)
                         node.setParmTemplateGroup(group)
                 else:
                     raise HoudiniError(
@@ -189,6 +188,31 @@ class parmUtils():
                 group.replace(original_parm, parm)
         node.setParmTemplateGroup(group)
 
+    @staticmethod
+    def remove_spare_parm(node, delete_all=False):
+        """remove spare parms that are not in a folder, used for wrangle nodes that create ch() calls"""
+        parmt_temp_group = node.parmTemplateGroup()
+        spare_parms = [parm for parm in node.parmTuples() if not
+        isinstance(parm.parmTemplate(), (hou.FolderSetParmTemplate, hou.FolderParmTemplate)) and parm.isSpare()]
+        # get only parms that are not in any folder
+        not_in_folder = []
+        for parm in spare_parms:
+            # exclude spares that don't have a containingFolders, like separator items
+            try:
+                in_folder = parm.containingFolders()
+                if not in_folder:
+                    not_in_folder.append(parm.parmTemplate())
+            except IndexError:
+                continue
+        if not_in_folder:
+            if delete_all:
+                for template in not_in_folder:
+                    parmt_temp_group.remove(template)
+                node.setParmTemplateGroup(parmt_temp_group)
+                return
+            parmt_temp_group.remove(not_in_folder[-1])
+            node.setParmTemplateGroup(parmt_temp_group)
+
     def valid_temp(self, invalid_parm_node: hou.Node) -> hou.ParmTemplate:
         base_parm = self._parm
         name = base_parm.name()
@@ -204,7 +228,7 @@ class parmUtils():
         # to not throw an error when user creates references from unsupported parms, convert parm to supported
         if base_parm.namingScheme() in parmUtils.invalidSchemes():
             base_parm.setNamingScheme(hou.parmNamingScheme.Base1)
-            
+
         base_parm.setConditional(hou.parmCondType.HideWhen, "")
         return base_parm
 
@@ -220,7 +244,7 @@ class parmUtils():
                         set_on = self.envNode_parm
                 else:
                     set_on = self.envNode_parm
-            # create new folder that will store all the nodes form one node
+                # create new folder that will store all the nodes form one node
                 folder_id = self.parm_node.path()
                 folder_id = folder_id.replace("/", "_").strip("_")
                 group = set_on.parmTemplateGroup()
@@ -254,7 +278,7 @@ class parmUtils():
             for to_set, to_fetch in zip(parm_to_ref, self.parm_tuple):
                 parm_name = to_set.name()
                 parm_path = f"{self.channelType}(\"{self.refrencePath}/{parm_name}\")"
-            # if parm is a ramp, create a parm without expression, the user will have to link them manually
+                # if parm is a ramp, create a parm without expression, the user will have to link them manually
                 if not isinstance(self.parm_inst.parmTemplate(), hou.RampParmTemplate):
                     to_fetch.setExpression(
                         parm_path, language=hou.exprLanguage.Hscript)
@@ -298,7 +322,7 @@ class MultiparmUtils(parmUtils):
     def createMultiParmCounterExpr(counter_node: hou.Node, mp_folder: hou.Parm) -> None:
         end_node_rel = counter_node.parm("blockpath").eval()
         end_node_name = re.search(r"\w+", end_node_rel).group()
-# get end block node object
+        # get end block node object
         parent = counter_node.parent().path()
         end_node_path = f"{parent}/{end_node_name}"
         end_node_obj = hou.node(end_node_path)
@@ -307,7 +331,7 @@ class MultiparmUtils(parmUtils):
         rel_path = end_node_obj.relativePathTo(mp_folder.node())
 
         mp_folder_name = mp_folder.name()
-# set expression for mp folder, to reference end block iteration count
+        # set expression for mp folder, to reference end block iteration count
         iter_parm.setExpression(
             f"ch(\"{rel_path}/{mp_folder_name}\")", hou.exprLanguage.Hscript)
 
@@ -406,7 +430,7 @@ class MultiparmUtils(parmUtils):
                 else:
                     re_invalid_check = r"(\w+)(max|min|end|begin|start)"
                     if re.match(re_invalid_check, parm_name):
-                        parm_scheme = str(scheme+1)
+                        parm_scheme = str(scheme + 1)
                     else:
                         parm_scheme = parm.name()[-1]
                     _parm_split.append(f"\"{parm_scheme}\"")
@@ -415,5 +439,3 @@ class MultiparmUtils(parmUtils):
                 full_expr = f"{self.channelType}(strcat(\"{path_to_multi_folder}/\", {parm_str}))"
                 parm.setExpression(
                     full_expr, language=hou.exprLanguage.Hscript)
-
-
