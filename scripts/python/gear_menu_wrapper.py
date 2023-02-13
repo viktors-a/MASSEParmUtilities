@@ -41,7 +41,7 @@ def attrib_group_fetch_buttons(node):
     button_folder = hou.FolderParmTemplate(folder_name, label, folder_type=hou.folderType.Collapsible)
     button_types = ["attributes", "groups"]
     for button_type in button_types:
-        button = hou.ButtonParmTemplate(f"MASSE_generate_{button_type}", f"Generate {button_type}",
+        button = hou.ButtonParmTemplate(f"MASSE_fetch_{button_type}", f"Fetch {button_type}",
                                         join_with_next=True)
         button.setScriptCallback \
             (fr"""__import__("MASSE_group_attrib_utils").AttribGroupUtils.create_group_attrib_names(kwargs["node"],
