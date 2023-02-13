@@ -39,13 +39,16 @@ class AttribGroupUtils:
         # find filder that includes all buttons
         main_folder = self.template_group.findFolder("MASSE group/attrib buttons")
         if main_folder:
+            parm_list = []
             folder_label = self.get
             folder_name = self.get.lower()
             folder_containing_strips = hou.FolderParmTemplate(folder_name, folder_label,
-                                                              folder_type=hou.folderType.Simple)
+                                                              folder_type=hou.folderType.Collapsible)
             for entry in content_dict:
                 menu_items = content_dict[entry]
-                menu_template = hou.MenuParmTemplate("_".join((self.get, entry)).lower(), entry, menu_items,
+                parm_name = "_".join((self.get, entry)).lower()
+                parm_list.append(parm_name)
+                menu_template = hou.MenuParmTemplate(parm_name, entry, menu_items,
                                                      is_button_strip=True, menu_type=hou.menuType.StringToggle,
                                                      join_with_next=True)
                 menu_template.setScriptCallback \
@@ -57,7 +60,8 @@ class AttribGroupUtils:
             else:
                 self.template_group.appendToFolder(main_folder, folder_containing_strips)
             self.node.setParmTemplateGroup(self.template_group)
-
+            for parm in parm_list:
+                self.node.parm(parm).set(0)
     @staticmethod
     def create_group_attrib_names(node, get):
         """Used as a callback for a generated attrib/groups buttons"""

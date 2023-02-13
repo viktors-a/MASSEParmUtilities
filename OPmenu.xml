@@ -2,7 +2,7 @@
 <menuDocument>
     <menu>
         <subMenu id="MASSE_OP_parm_menu">
-        <label>MASSE parm node utils</label>
+        <label>MASSE tools</label>
         <insertAfter>opmenu.parms_and_channels_menu</insertAfter>
 <!-- PARM MENUS -->
 <!-- PARM SET ENV -->
