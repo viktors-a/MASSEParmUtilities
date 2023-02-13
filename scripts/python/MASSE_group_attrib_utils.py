@@ -14,25 +14,36 @@ class AttribGroupUtils:
         self.get = get
         self.template_group = self.node.parmTemplateGroup()
         self.geo = None
+        self.read_from_node = None
 
     def get_groups_or_attribs(self) -> dict:
         """returns dict of ether attibs or groups of the geometry"""
-        """get parameter should be ether "Attributes" or "Groups" """
-        if isinstance(self.node, hou.SopNode):
-            return_dict = defaultdict(list)
-            self.geo = self.node.geometry()
-            if self.get == "Attributes":
-                for attrib_type in attrib_strings:
-                    for attrib_str in getattr(self.geo, f"{attrib_type}Attribs")():
-                        return_dict[attrib_type].append(attrib_str.name())
-                return dict(return_dict)
-            if self.get == "Groups":
-                for group_type in group_strings:
-                    for group_str in getattr(self.geo, f"{group_type}Groups")():
-                        return_dict[group_type].append(group_str.name())
-                return dict(return_dict)
-        else:
-            raise HoudiniError("No sop node detected")
+        # get node to read groups/attribs from
+        get_from_index = self.node.parm("MASSE_input_index")
+        if get_from_index:
+            node_geo_list = list(self.node.inputs())
+            node_geo_list.insert(0, self.node)
+            node_geo_dict = {index - 1: node for index, node in enumerate(node_geo_list) if node}
+            """get parameter should be ether "Attributes" or "Groups" """
+            if isinstance(self.node, hou.SopNode):
+                try:
+                    self.geo = node_geo_dict[get_from_index.eval()-1].geometry()
+                except KeyError:
+                    HoudiniError("No geometry found at input index")
+                if self.geo:
+                    return_dict = defaultdict(list)
+                    if self.get == "Attributes":
+                        for attrib_type in attrib_strings:
+                            for attrib_str in getattr(self.geo, f"{attrib_type}Attribs")():
+                                return_dict[attrib_type].append(attrib_str.name())
+                        return dict(return_dict)
+                    if self.get == "Groups":
+                        for group_type in group_strings:
+                            for group_str in getattr(self.geo, f"{group_type}Groups")():
+                                return_dict[group_type].append(group_str.name())
+                        return dict(return_dict)
+                else:
+                    raise HoudiniError("No sop node detected")
 
     def create_strip_buttons(self, content_dict):
         """create spare strip buttons based on dictionary"""

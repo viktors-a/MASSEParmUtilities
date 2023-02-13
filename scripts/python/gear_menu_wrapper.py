@@ -48,6 +48,9 @@ def attrib_group_fetch_buttons(node):
             "{button_type.title()}") """)
         button.setScriptCallbackLanguage(hou.scriptLanguage.Python)
         button_folder.addParmTemplate(button)
+    node_path = hou.MenuParmTemplate("MASSE_input_index", "Node input index:", ("This node", "0", "1", "2", "3"),
+                                     is_button_strip=True, menu_type=hou.menuType.Normal)
+    button_folder.addParmTemplate(node_path)
     # if folder already exist, remove it
     content_folder = template_group.find(folder_name)
     if content_folder:
