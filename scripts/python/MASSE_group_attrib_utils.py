@@ -34,13 +34,21 @@ class AttribGroupUtils:
                     return_dict = defaultdict(list)
                     if self.get == "Attributes":
                         for attrib_type in attrib_strings:
-                            for attrib_str in getattr(self.geo, f"{attrib_type}Attribs")():
-                                return_dict[attrib_type].append(attrib_str.name())
+                            for attrib in getattr(self.geo, f"{attrib_type}Attribs")():
+                                attrib_name = attrib.name()
+                                attib_is_array = attrib.isArrayType()
+                                is_array = ""
+                                if attib_is_array:
+                                    is_array = " array"
+                                attrib_data_type = attrib.dataType().name()
+                                attrib_label = f"{attrib_name}({attrib_data_type}{is_array})"
+                                return_dict[attrib_type].append([attrib_name, attrib_label])
                         return dict(return_dict)
                     if self.get == "Groups":
                         for group_type in group_strings:
                             for group_str in getattr(self.geo, f"{group_type}Groups")():
-                                return_dict[group_type].append(group_str.name())
+                                group_name = group_str.name()
+                                return_dict[group_type].append([group_name, group_name])
                         return dict(return_dict)
                 else:
                     raise HoudiniError("No sop node detected")
@@ -56,10 +64,15 @@ class AttribGroupUtils:
             folder_containing_strips = hou.FolderParmTemplate(folder_name, folder_label,
                                                               folder_type=hou.folderType.Collapsible)
             for entry in content_dict:
-                menu_items = content_dict[entry]
                 parm_name = "_".join((self.get, entry)).lower()
                 parm_list.append(parm_name)
-                menu_template = hou.MenuParmTemplate(parm_name, entry, menu_items,
+                # create two different list for names and labels
+                menu_items = []
+                menu_labels = []
+                for name, label in content_dict[entry]:
+                    menu_items.append(name)
+                    menu_labels.append(label)
+                menu_template = hou.MenuParmTemplate(parm_name, entry, menu_items, menu_labels,
                                                      is_button_strip=True, menu_type=hou.menuType.StringToggle,
                                                      join_with_next=True)
                 menu_template.setScriptCallback \
