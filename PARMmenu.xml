@@ -238,7 +238,7 @@ return False
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.find_valid_env_in_sting(kwargs)
+    MASSE_parm_utils.find_valid_env_in_string(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>

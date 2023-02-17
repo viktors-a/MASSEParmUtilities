@@ -10,7 +10,7 @@ class HoudiniError(Exception):
 
 
 def all_parm_template_names(group_or_folder: hou.ParmTemplateGroup) -> Iterable[str]:
-    '''Generator of parm names'''
+    """Generator of parm names"""
     for parm_template in group_or_folder.parmTemplates():
         yield parm_template.name()
         if parm_template.type() == hou.parmTemplateType.Folder:
@@ -18,7 +18,7 @@ def all_parm_template_names(group_or_folder: hou.ParmTemplateGroup) -> Iterable[
                 yield sub_parm_template
 
 
-def find_valid_env_in_sting(kwargs):
+def find_valid_env_in_string(kwargs):
     """find env variables value in a parm string and give and option to replace part of the string with env variables"""
     # only get envs that are actual file paths
     possibe_envs = {key: os.environ[key] for key in os.environ if os.path.exists(os.environ[key])}
