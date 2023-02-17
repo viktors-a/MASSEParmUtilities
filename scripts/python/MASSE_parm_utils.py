@@ -2,19 +2,61 @@ from typing import Iterable, Optional, Tuple, Generator
 import itertools
 import re
 import hou
+import os
 
 
 class HoudiniError(Exception):
     """Display message in houdini"""
 
 
-def allParmTemplateNames(group_or_folder: hou.ParmTemplateGroup) -> Iterable[str]:
+def all_parm_template_names(group_or_folder: hou.ParmTemplateGroup) -> Iterable[str]:
     '''Generator of parm names'''
     for parm_template in group_or_folder.parmTemplates():
         yield parm_template.name()
         if parm_template.type() == hou.parmTemplateType.Folder:
-            for sub_parm_template in allParmTemplateNames(parm_template):
+            for sub_parm_template in all_parm_template_names(parm_template):
                 yield sub_parm_template
+
+
+def find_valid_env_in_sting(kwargs):
+    """find env variables value in a parm string and give and option to replace part of the string with env variables"""
+    # only get envs that are actual file paths
+    possibe_envs = {key: os.environ[key] for key in os.environ if os.path.exists(os.environ[key])}
+    new_parm_val_options = []
+    re_slashes = r'[\\/]+'
+    parm = kwargs["parms"][0]
+    # strip leading characters of file. This string occurs when file path is copied in clipboard
+    init_parm_val = parm.eval()
+    file_prefix = re.match(r"^file:[/\\]+", init_parm_val)
+    if file_prefix:
+        init_parm_val = init_parm_val[file_prefix.end():]
+    equal_slashes_parm = re.sub(re_slashes, "/", init_parm_val)
+    # check if data in parm is a string
+    if isinstance(init_parm_val, str):
+        for key in possibe_envs:
+            env_start_str = f"${key}"
+            env_middle_str = f"/${key}"
+            equal_slashes_env = re.sub(re_slashes, "/", possibe_envs[key])
+            matches_found = re.findall(equal_slashes_env, equal_slashes_parm)
+            if matches_found:
+                # add env key without a slash if env val is found at the beggining, othervise add "/" to it
+                if re.match(equal_slashes_env, equal_slashes_parm):
+                    new_parm_val_options.append(re.sub(equal_slashes_env, env_start_str, equal_slashes_parm))
+                else:
+                    new_parm_val_options.append(re.sub(equal_slashes_env, env_middle_str, equal_slashes_parm))
+        # if any vals found sort them by length and create selectFromList window
+        if new_parm_val_options:
+            new_parm_val_options.sort(key=len)
+            selection = hou.ui.selectFromList(new_parm_val_options, title="Found environment variables",
+                                              message="Select new parameter value")
+            if selection:
+                selected = selection[0]
+                new_parm_val = new_parm_val_options[selected]
+                parm.set(new_parm_val)
+        else:
+            raise HoudiniError("No environment variables found in a string.")
+    else:
+        raise HoudiniError("No string found.")
 
 
 class parmUtils():
@@ -88,7 +130,7 @@ class parmUtils():
         if node_def:
             to_check.append(node_def.parmTemplateGroup())
         for group in itertools.chain(to_check):
-            for name in allParmTemplateNames(group):
+            for name in all_parm_template_names(group):
                 yield name
         else:
             return None
