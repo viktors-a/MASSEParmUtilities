@@ -278,6 +278,7 @@ class parmUtils():
         # only wrks on non-multiparms and if parm node is set up
         if self.envNode_parm:
             if not self.parm_inst.isMultiParmInstance():
+                parm_val_tuple = self.parm_tuple.eval()
                 # if node is an hda, give option to add parm to hda definition or spare parm
                 if self.hdaGroup:
                     if assign_to_definition:
@@ -292,10 +293,12 @@ class parmUtils():
                 group = set_on.parmTemplateGroup()
                 if group.findFolder(folder_id):
                     found_folder = group.findFolder(folder_id)
+                    valid_temp = self.valid_temp(self.envNode_parm)
                     group.appendToFolder(
-                        found_folder, self.valid_temp(self.envNode_parm))
+                        found_folder, valid_temp)
                     set_on.setParmTemplateGroup(
                         group, rename_conflicting_parms=True)
+                    self.envNode_parm.parmTuple(valid_temp.name()).set(parm_val_tuple)
                 else:
                     # if the user tries to write parm to hda definition on a node that's already referenced in a sapre parms, trow an exception to avoid confusion
                     if self.hdaGroup and assign_to_definition:
@@ -303,11 +306,13 @@ class parmUtils():
                             raise HoudiniError(
                                 "Folder found in a spare parameters of the node")
                     # create a folder that will be named after the full path of the node, and put all parameters from that node in it
+                    valid_temp = self.valid_temp(self.envNode_parm)
                     new_folder = hou.FolderParmTemplate(
-                        folder_id, folder_id, (self.valid_temp(self.envNode_parm),), folder_type=hou.folderType.Simple)
+                        folder_id, folder_id, (valid_temp,), folder_type=hou.folderType.Simple)
                     group.append(new_folder)
                     set_on.setParmTemplateGroup(
                         group, rename_conflicting_parms=True)
+                    self.envNode_parm.parmTuple(valid_temp.name()).set(parm_val_tuple)
 
             else:
                 raise HoudiniError("Parm is a multiparm instance")
