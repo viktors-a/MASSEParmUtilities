@@ -12,7 +12,7 @@
 <![CDATA[
 import hou
 node_path = kwargs['node'].path()
-hou.putenv("MASSE_PARM_NODE",node_path)
+hou.putenv("MASSE_PARM_NODE", node_path)
 ]]>
                 </scriptCode>
             </scriptItem>
@@ -25,7 +25,7 @@ hou.putenv("MASSE_PARM_NODE",node_path)
 def runLater():
     import MASSE_parm_utils
     active_path = hou.getenv("MASSE_PARM_NODE")
-    MASSE_parm_utils.parmUtils.jumpToNode(env= active_path, parm_type= "parm") 
+    MASSE_parm_utils.parmUtils.jump_to_node(env= active_path, parm_type= "parm")
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>
@@ -53,7 +53,7 @@ hou.putenv("MASSE_MULTIPARM_COUNTER_NODE", node_path)
 mp_folder = hou.getenv("MASSE_MULTIPARM_FOLDER")
 if mp_folder:
     mp_folder = hou.parm(mp_folder)
-    MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(counter_node, mp_folder)
+    MASSE_parm_utils.MultiparmUtils.create_multiparm_counter_expr(counter_node, mp_folder)
 ]]>             </scriptCode>
             </scriptItem>
 
@@ -73,7 +73,7 @@ return False
 def runLater():
     import MASSE_parm_utils
     active_path = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
-    MASSE_parm_utils.parmUtils.jumpToNode(env= active_path, parm_type= "multiparm counter") 
+    MASSE_parm_utils.parmUtils.jump_to_node(env= active_path, parm_type= "multiparm counter")
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
@@ -93,7 +93,7 @@ return False
 def runLater():
     import MASSE_parm_utils
     active_path = hou.parm(hou.getenv("MASSE_MULTIPARM_FOLDER")).node().path()
-    MASSE_parm_utils.parmUtils.jumpToNode(env= active_path, parm_type= "multiparm folder node") 
+    MASSE_parm_utils.parmUtils.jump_to_node(env= active_path, parm_type= "multiparm folder node")
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
@@ -101,7 +101,7 @@ hdefereval.executeDeferred(runLater)
 
 
             <scriptItem id = "MASSE_spare_counter_reference">
-                <label>Make spare counter reference</label>
+                <label>Add spare input</label>
 <expression>
 <![CDATA[
 if len(hou.selectedNodes()) == 2:
@@ -112,50 +112,23 @@ return False
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.MultiparmUtils.createSpareCounterReference(kwargs)
+    MASSE_parm_utils.MultiparmUtils.add_spare_input(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
 
 
-            <scriptItem id = "MASSE_set_labels">
-                <label>Set spare parm labels based on name</label>
+            <scriptItem id = "MASSE_rename_selected_nodes">
+                <label>Rename selected nodes</label>
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.parmUtils.renameParms(kwargs)
+    MASSE_parm_utils.parmUtils.rename_selected_node()
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
-
-            <scriptItem id = "MASSE_batch_rename">
-                <label>Rename multiple nodes</label>
-                <scriptCode><![CDATA[
-def runLater():
-    import MASSE_parm_utils
-    from importlib import reload
-    reload(MASSE_parm_utils)
-    MASSE_parm_utils.parmUtils.renameNodes()
-import hdefereval
-hdefereval.executeDeferred(runLater)
-]]>             </scriptCode>
-            </scriptItem>
-            <!-- <scriptItem id = "masse_test">
-                <label>Test_script</label>
-                <scriptCode><![CDATA[
-def runLater():
-    import MASSE_parm_utils
-    import importlib
-    importlib.reload(MASSE_parm_utils)
-    MASSE_parm_utils.MultiparmUtils.createSpareCounterReference(kwargs)
-import hdefereval
-hdefereval.executeDeferred(runLater)
-]]>             </scriptCode>
-            </scriptItem> -->
-
-
         </subMenu>
     </menu>
 </menuDocument>

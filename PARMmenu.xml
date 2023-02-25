@@ -7,7 +7,7 @@
 
 
             <scriptItem id = "MASSE_spare_parm">
-                <label>Set to spare parameter</label>
+                <label>Add to parm node(spare)</label>
                 <expression><![CDATA[
 if hou.getenv("MASSE_PARM_NODE"):
     return True
@@ -19,7 +19,7 @@ else:
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.parmUtils(kwargs).createRelativeReference(assign_to_definition=False)
+    MASSE_parm_utils.parmUtils(kwargs).create_relative_parm_reference(assign_to_definition=False)
 import hdefereval
 hdefereval.executeDeferred(runLater)
         ]]>     </scriptCode>
@@ -27,7 +27,7 @@ hdefereval.executeDeferred(runLater)
 
 
             <scriptItem id = "MASSE_hda_definition">
-                <label>Set to HDA definition</label>
+                <label>Add to parm node(HDA)</label>
                 <expression><![CDATA[
 active_path = hou.getenv("MASSE_PARM_NODE")
 if hou.node(active_path):
@@ -40,7 +40,7 @@ return False
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.parmUtils(kwargs).createRelativeReference(assign_to_definition=True)
+    MASSE_parm_utils.parmUtils(kwargs).create_relative_parm_reference(assign_to_definition=True)
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
@@ -59,7 +59,7 @@ else:
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.parmUtils(kwargs).deleteParm()
+    MASSE_parm_utils.parmUtils(kwargs).delete_parm()
 import hdefereval
 hdefereval.executeDeferred(runLater)
 
@@ -86,7 +86,7 @@ return False
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.MultiparmUtils(kwargs).createMultiparmReference()
+    MASSE_parm_utils.MultiparmUtils(kwargs).create_multiparm_reference()
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
@@ -108,12 +108,12 @@ mp_folder = kwargs["parms"][0]
 parm_path = mp_folder.path()
 hou.putenv("MASSE_MULTIPARM_FOLDER", parm_path)
 # set multistartoffset to 0, to make sure its in sync with multiparm iterations attribute
-MASSE_parm_utils.MultiparmUtils.setMultiParmFirstInstance(mp_folder)
+MASSE_parm_utils.MultiparmUtils.set_multiparm_init_counter_index(mp_folder)
 mp_counter = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
 # if counter node variable is present, create expression referencing count
 if mp_counter:
     conter_node = hou.node(mp_counter)
-    MASSE_parm_utils.MultiparmUtils.createMultiParmCounterExpr(conter_node, mp_folder)
+    MASSE_parm_utils.MultiparmUtils.create_multiparm_counter_expr(conter_node, mp_folder)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -123,7 +123,7 @@ if mp_counter:
                 <label>Create spare parm FLOAT [-5|5]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=-5,max=5)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.FloatParmTemplate,min=-5,max=5)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -133,7 +133,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm FLOAT [-1|1]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=-1,max=1)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.FloatParmTemplate,min=-1,max=1)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -142,7 +142,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm FLOAT [0-1]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=1)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=1)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -151,7 +151,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm FLOAT [0|10]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=10)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.FloatParmTemplate,min=0,max=10)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -162,7 +162,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Flo
                 <label>Create spare parm INT [0-10]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.IntParmTemplate,min=0,max=10)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.IntParmTemplate,min=0,max=10)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -172,7 +172,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Int
                 <label>Create spare parm INT [0-100]</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.IntParmTemplate,min=0,max=100)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.IntParmTemplate,min=0,max=100)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -182,7 +182,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Int
                 <label>Create spare parm STRING</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.StringParmTemplate)
+MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou.StringParmTemplate)
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -193,7 +193,7 @@ MASSE_parm_utils.parmUtils.createSpareParmFromExpression(kwargs["parms"],hou.Str
                 <label>Change spare parm range</label>
                 <scriptCode><![CDATA[
 import MASSE_parm_utils
-MASSE_parm_utils.parmUtils.changeRange(kwargs["parms"])
+MASSE_parm_utils.parmUtils.change_parm_range(kwargs["parms"])
 
 ]]>             </scriptCode>
             </scriptItem>
@@ -238,7 +238,27 @@ return False
                 <scriptCode><![CDATA[
 def runLater():
     import MASSE_parm_utils
-    MASSE_parm_utils.find_valid_env_in_string(kwargs)
+    MASSE_parm_utils.parmUtils.find_valid_env_in_string(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+
+            <scriptItem id = "MASSE_pdg_attrib">
+                <label>Get PDG attribute expression</label>
+<expression>
+<![CDATA[
+import pdg
+if pdg.workItem():
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).create_pdg_attrib_expression()
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
