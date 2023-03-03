@@ -129,6 +129,25 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
+<!-- SET WEDGE NODE  -->
+
+            <scriptItem id = "MASSE_set_wedge">
+                <label>Set as wedge node</label>
+<expression>
+<![CDATA[
+if kwargs["node"].type().name()=="wedge":
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import hou
+    hou.putenv("MASSE_WEDGE_NODE", kwargs["node"].path())
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
         </subMenu>
     </menu>
 </menuDocument>

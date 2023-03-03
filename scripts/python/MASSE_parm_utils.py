@@ -1,5 +1,7 @@
 from typing import Iterable, Optional, Tuple, Generator
+from collections import defaultdict
 import itertools
+import pdg
 import re
 import hou
 import os
@@ -13,9 +15,10 @@ class parmUtils:
 
     def __init__(self, kwargs) -> None:
         self.kwargs = kwargs
-        self.parm_inst = kwargs["parms"][0]
-        self.parm_node = self.parm_inst.node()
-        self.parm_tuple = self.parm_inst.tuple()
+        self.parms_inst = kwargs["parms"]
+        self.parm = kwargs["parms"][0]
+        self.parm_node = self.parm.node()
+        self.parm_tuple = self.parm.tuple()
         self.parm_group = self.parm_node.parmTemplateGroup()
         self._parm = self.parm_tuple.parmTemplate()  # original parm
 
@@ -39,6 +42,13 @@ class parmUtils:
         if isinstance(self._parm, hou.StringParmTemplate):
             return "chs"
         return "ch"
+
+    @property
+    def holds_string(self):
+        # returns true if parm hold string value
+        if self._parm.type() == hou.parmTemplateType.String:
+            return True
+        return False
 
     @property
     def hda_template_group(self) -> Optional[hou.ParmTemplateGroup]:
@@ -273,7 +283,7 @@ class parmUtils:
     def create_relative_parm_reference(self, assign_to_definition: bool = True) -> None:
         # if parm node is set, creates parm on that node and creates expression that refrences newly created parm
         if self.parm_controll_node:
-            if not self.parm_inst.isMultiParmInstance():
+            if not self.parm.isMultiParmInstance():
                 parm_val_tuple = self.parm_tuple.eval()
                 # if node is an hda, give option to add parm to hda definition or spare parm
                 if self.hda_template_group:
@@ -296,12 +306,14 @@ class parmUtils:
                         group, rename_conflicting_parms=True)
                     self.parm_controll_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
                 else:
-                    # if the user tries to write parm to hda definition on a node that's already referenced in a sapre parms, trow an exception to avoid confusion
+                    # if the user tries to write parm to hda definition on a node that's already
+                    # referenced in a sapre parms, trow an exception to avoid confusion
                     if self.hda_template_group and assign_to_definition:
                         if self.parm_controll_node.parmTemplateGroup().findFolder(folder_id):
                             raise HoudiniError(
                                 "Folder found in a spare parameters of the node")
-                    # create a folder that will be named after the full path of the node, and put all parameters from that node in it
+                    # create a folder that will be named after the full path of the node,
+                    # and put all parameters from that node in it
                     valid_temp = self.valid_temp(self.parm_controll_node)
                     new_folder = hou.FolderParmTemplate(
                         folder_id, folder_id, (valid_temp,), folder_type=hou.folderType.Simple)
@@ -323,17 +335,17 @@ class parmUtils:
                 refrence_path = self.parm_node.relativePathTo(self.parm_controll_node)
                 parm_path = f"{self.channel_type}(\"{refrence_path}/{parm_name}\")"
                 # if parm is a ramp, create a parm without expression, the user will have to link them manually
-                if not isinstance(self.parm_inst.parmTemplate(), hou.RampParmTemplate):
+                if not isinstance(self.parm.parmTemplate(), hou.RampParmTemplate):
                     to_fetch.setExpression(
                         parm_path, language=hou.exprLanguage.Hscript)
         else:
             raise HoudiniError("No parm enviroment parm found")
 
     def delete_parm(self):
-        # make sure we can only delete parms that could have been referenced in other nodes
+        # remove spare or hda parm
         if not self.parm_tuple.isMultiParmInstance():
             if not isinstance(self.parm_tuple.parmTemplate(), hou.FolderSetParmTemplate):
-                if self.parm_inst.isSpare():
+                if self.parm.isSpare():
                     # remove keyframes form all the parms referencting this parm
                     for parm in self.parm_tuple:
                         for parm_ref in parm.parmsReferencingThis():
@@ -353,9 +365,179 @@ class parmUtils:
         else:
             raise HoudiniError("Parm is a multiparm instance")
 
-    def create_pdg_attrib_expression(self):
-        # todo fetch pdg attribute
-        pass
+    def create_pdg_attrib_expression(self, replace=False):
+        # fetch pdg attrib values from an active work item
+        work_items = pdg.workItem()
+        pdg_dict = defaultdict(list)
+        # build in attributes that will have current attribute value shown in selectFromList
+        build_in_list_vals = ["index", "id", "name", "label", "frame"]
+        # build in attributes that will show only expressions in selectFromList
+        build_in_list_expression = ["input", "inputsize", "output", "outputsize"]
+        if work_items:
+            # set up attribute dictionary
+            for build_in in build_in_list_vals:
+                attrib_val = getattr(work_items, build_in)
+                attrib_expression = f"P@pdg_{build_in}"
+                pdg_dict[f"build_in_{build_in}"] = [attrib_val, attrib_expression]
+            for build_in in build_in_list_expression:
+                expression = f"P@pdg_{build_in}"
+                # to avoid possible long strings of paths in fromList window, don't show its current value,
+                # only expression
+                attrib_val, attrib_expression = expression, expression
+                pdg_dict[f"build_in_{build_in}"] = [attrib_val, attrib_expression]
+            # get any non-built-in attributes of the work item
+            pdg_attribs = work_items.data.allDataMap
+            for pdg_attrib in pdg_attribs:
+                attrib_val = pdg_attribs[pdg_attrib]
+                attrib_expression = f"P@{pdg_attrib}"
+                pdg_dict[f"{pdg_attrib}"] = [attrib_val, attrib_expression]
+            # convert dictionary to list, so it can display attribute name and its current value in a single line
+            menu_selection = [f"{attrib}: {pdg_dict[attrib][0]}" for attrib in pdg_dict]
+            # pop up listFrom window and allow the user to select multiple attributes that will be strung together
+            user_selection = hou.ui.selectFromList(menu_selection, exclusive=False)
+            if user_selection:
+                selected_items = []
+                for selection_index in user_selection:
+                    key = menu_selection[selection_index].split(":")[0]
+                    selected_items.append(pdg_dict[key][1])
+                for index, parm in enumerate(self.parms_inst):
+                    if len(self.parms_inst) == 1:
+                        index = f""
+                    else:
+                        index = f".{index}"
+                    # two different expression formats to append depending on parm type and if it's keyframed
+                    string_expression = "_".join([f"`{entry}{index}`" for entry in selected_items])
+                    keyframe_expression = "_".join([f"{entry}{index}" for entry in selected_items])
+                    # if parm is keyframed create a new keyframe at the current frame
+                    if parm.keyframes():
+                        keyframe = parm.keyframesBefore(hou.frame())[-1]
+                        old_parm_val = keyframe.expression()
+                        keyframe.setFrame(hou.frame())
+                        if replace:
+                            new_parm_val = keyframe_expression
+                        else:
+                            new_parm_val = "".join((old_parm_val, keyframe_expression))
+                        keyframe.setExpression(new_parm_val)
+                        parm.setKeyframe(keyframe)
+                        continue
+                    if self.holds_string:
+                        old_parm_val = parm.unexpandedString()
+                        if replace:
+                            parm.set(string_expression)
+                        else:
+                            new_parm_val = "".join((old_parm_val, string_expression))
+                            parm.set(new_parm_val)
+                        continue
+                    else:
+                        old_parm_val = parm.eval()
+                        if replace:
+                            parm.setExpression(keyframe_expression)
+                        else:
+                            if old_parm_val:
+                                new_parm_val = "".join((old_parm_val, keyframe_expression))
+                            else:
+                                new_parm_val = keyframe_expression
+                            parm.setExpression(new_parm_val)
+
+    def get_pdg_work_item_tags(self, input_outup_property: str, exp_func_name: str):
+        """ diplay list of input or output files of work items with their tags,
+        using pdginput/pdgoutput functions to reference them in string parm"""
+        work_items = pdg.workItem()
+        if work_items and self.holds_string:
+            work_item_dict = {f"{file.path}: {file.tag}": (file, file.tag, index) for index, file in
+                              enumerate(getattr(work_items, input_outup_property))}
+            if work_item_dict:
+                selection_list = list(work_item_dict.keys())
+                user_selection = hou.ui.selectFromList(selection_list)
+                # dict for counting how many unique tag values there are
+                tag_count_dict = defaultdict(int)
+                # for any unique tags, use tag string in function, if not use empty string and use index as identifier
+                for work_item in work_item_dict:
+                    file, tag, index = work_item_dict[work_item]
+                    tag_count_dict[tag] += 1
+                if user_selection:
+                    selected = work_item_dict[selection_list[user_selection[0]]]
+                    file, tag, index = selected
+                    if tag_count_dict[tag] == 1:
+                        index = 0
+                    if tag_count_dict[tag] > 1:
+                        tag = ""
+                    pdg_expression = f"`{exp_func_name}({index}, \"{tag}\",0)"
+                    if self.parm.keyframes():
+                        self.parm.deleteAllKeyframes()
+                    self.parm.set(pdg_expression)
+
+    def add_parm_to_wedge(self):
+        # add parm to wedge multiparm
+        wedge_path = hou.getenv("MASSE_WEDGE_NODE")
+        if wedge_path:
+            wedge_node = hou.node(wedge_path)
+            attrib_multiparm = wedge_node.parm("wedgeattributes")
+            if attrib_multiparm:
+                # get all channel string parm values
+                added_parms = [parm.eval() for parm in attrib_multiparm.multiParmInstances()
+                               if re.match(r"channel\d+", parm.name())]
+                parm_list = []
+                for added_par_str in added_parms:
+                    # match string in parm to get node path and parm name
+                    node_match = re.match(r"^.+/", added_par_str)
+                    if node_match:
+                        node_path = node_match.group()
+                        node_obj = wedge_node.node(node_path)
+                        if node_obj:
+                            parm_name = added_par_str[node_match.end():]
+                            parm = [parm for parm in [node_obj.parm(parm_name), node_obj.parmTuple(parm_name)]
+                                    if parm is not None]
+                            if parm:
+                                parm_list.append(parm[0])
+                parm_to_ref = self.parms_inst[0]
+                parm_to_ref_temp = parm_to_ref.parmTemplate()
+                if len(self.parms_inst) > 1:
+                    parm_to_ref = self.parms_inst[0].tuple()
+                if parm_to_ref in parm_list:
+                    raise HoudiniError("Parm already referenced!")
+                # create new multiparm and set target parameter to parm string path
+                attrib_multiparm.insertMultiParmInstance(0)
+                wedge_node.parm("exportchannel1").set(1)
+                # to get parm tuple path, get node path and tuple name and string them together
+                if isinstance(parm_to_ref, hou.ParmTuple):
+                    node_path = parm_to_ref.node().path()
+                    parm_name = parm_to_ref.name()
+                    parm_path = "/".join((node_path, parm_name))
+                    parm_len, parm_data_type, naming_scheme = (len(parm_to_ref), parm_to_ref_temp.dataType(),
+                                                               parm_to_ref_temp.namingScheme())
+                # for parm just call path methode
+                else:
+                    parm_path = parm_to_ref.path()
+                    parm_len, parm_data_type, naming_scheme = (1, parm_to_ref_temp.dataType(),
+                                                               parm_to_ref_temp.namingScheme())
+                # ask user for wedge type
+                wedge_type_list = ["Range", "Value", "Value list", "Bracket", "Default"]
+                wedge_type_select = hou.ui.displayCustomConfirmation("Select wedge type",
+                                                                     buttons=wedge_type_list)
+                if 0 <= wedge_type_select <= 3:
+                    wedge_node.parm("wedgetype1").set(wedge_type_select)
+                # set path to newly created multiparm
+                wedge_node.parm("channel1").set(parm_path)
+                # set attribute and capture type same as target parameter
+                type_menu, attrib_type = wedge_node.parm("capturetype1"), wedge_node.parm("type1")
+                parm_conversion_table = {hou.parmData.Float: 0, hou.parmData.Int: 2, hou.parmData.String: 4}
+                tuple_conversion_table = {hou.parmData.Float: 1, hou.parmData.Int: 3}
+                if naming_scheme != hou.parmNamingScheme.RGBA:
+                    if parm_len == 1 and naming_scheme:
+                        if parm_data_type in parm_conversion_table:
+                            type_val = parm_conversion_table[parm_data_type]
+                            type_menu.set(type_val)
+                            attrib_type.set(type_val)
+
+                    else:
+                        if parm_data_type in tuple_conversion_table:
+                            type_val = tuple_conversion_table[parm_data_type]
+                            type_menu.set(type_val)
+                            attrib_type.set(type_val)
+                if naming_scheme == hou.parmNamingScheme.RGBA:
+                    type_menu.set(5)
+                    attrib_type.set(5)
 
 
 class MultiparmUtils(parmUtils):

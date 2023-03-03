@@ -245,8 +245,27 @@ hdefereval.executeDeferred(runLater)
                 </scriptItem>
 
 
-            <scriptItem id = "MASSE_pdg_attrib">
-                <label>Get PDG attribute expression</label>
+            <scriptItem id = "MASSE_pdg_attribute_replace">
+                <label>Get PDG attributes(replace)</label>
+<expression>
+<![CDATA[
+import pdg
+if pdg.workItem():
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).create_pdg_attrib_expression(replace=True)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+            <scriptItem id = "MASSE_pdg_attribute_append">
+                <label>Get PDG attributes(append)</label>
 <expression>
 <![CDATA[
 import pdg
@@ -259,6 +278,94 @@ return False
 def runLater():
     import MASSE_parm_utils
     MASSE_parm_utils.parmUtils(kwargs).create_pdg_attrib_expression()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+
+            <scriptItem id = "MASSE_pdg_tag_input">
+                <label>Get PDG input tag</label>
+<expression>
+<![CDATA[
+import pdg
+work_item = pdg.workItem()
+parm_type = kwargs["parms"][0].parmTemplate().type()
+if work_item:
+    if work_item.inputFiles and parm_type == hou.parmTemplateType.String:
+        return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).get_pdg_work_item_tags("inputFiles", "pdginput")
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+            <scriptItem id = "MASSE_pdg_tag_output">
+                <label>Get PDG output tag</label>
+<expression>
+<![CDATA[
+import pdg
+work_item = pdg.workItem()
+parm_type = kwargs["parms"][0].parmTemplate().type()
+if work_item:
+    if work_item.outputFiles and parm_type == hou.parmTemplateType.String:
+        return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).get_pdg_work_item_tags("outputFiles", "pdgoutput")
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+            <scriptItem id = "MASSE_add_to_wedge">
+                <label>Add parm to wedge</label>
+<expression>
+<![CDATA[
+import hou
+if hou.getenv("MASSE_WEDGE_NODE"):
+    return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    import MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).add_parm_to_wedge()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+
+            <scriptItem id = "MASSE_delete_all_keyframes">
+                <label>Delete all keyframes</label>
+<expression>
+<![CDATA[
+import hou
+parms = kwargs["parms"]
+for parm in parms:
+    if parm.keyframes():
+        return True
+return False
+]]>
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    parms = kwargs["parms"]
+    for parm in parms:
+        if parm.keyframes():
+            parm.deleteAllKeyframes()
 import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
