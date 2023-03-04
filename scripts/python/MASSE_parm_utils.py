@@ -15,7 +15,7 @@ class parmUtils:
 
     def __init__(self, kwargs) -> None:
         self.kwargs = kwargs
-        self.parms_inst = kwargs["parms"]
+        self.parms = kwargs["parms"]
         self.parm = kwargs["parms"][0]
         self.parm_node = self.parm.node()
         self.parm_tuple = self.parm.tuple()
@@ -400,8 +400,8 @@ class parmUtils:
                 for selection_index in user_selection:
                     key = menu_selection[selection_index].split(":")[0]
                     selected_items.append(pdg_dict[key][1])
-                for index, parm in enumerate(self.parms_inst):
-                    if len(self.parms_inst) == 1:
+                for index, parm in enumerate(self.parms):
+                    if len(self.parms) == 1:
                         index = f""
                     else:
                         index = f".{index}"
@@ -490,27 +490,54 @@ class parmUtils:
                                     if parm is not None]
                             if parm:
                                 parm_list.append(parm[0])
-                parm_to_ref = self.parms_inst[0]
-                parm_to_ref_temp = parm_to_ref.parmTemplate()
-                if len(self.parms_inst) > 1:
-                    parm_to_ref = self.parms_inst[0].tuple()
+                parm_to_ref = self.parm
+                parm_to_ref_temp = self.parm.parmTemplate()
+                if len(self.parms) > 1:
+                    parm_to_ref = self.parms[0].tuple()
                 if parm_to_ref in parm_list:
                     raise HoudiniError("Parm already referenced!")
                 # create new multiparm and set target parameter to parm string path
                 attrib_multiparm.insertMultiParmInstance(0)
                 wedge_node.parm("exportchannel1").set(1)
-                # to get parm tuple path, get node path and tuple name and string them together
+                # get parm or parmTuple path
                 if isinstance(parm_to_ref, hou.ParmTuple):
+                    # there is no path method for parmTuples, get the node path and parm name to string them together
                     node_path = parm_to_ref.node().path()
                     parm_name = parm_to_ref.name()
                     parm_path = "/".join((node_path, parm_name))
-                    parm_len, parm_data_type, naming_scheme = (len(parm_to_ref), parm_to_ref_temp.dataType(),
-                                                               parm_to_ref_temp.namingScheme())
-                # for parm just call path methode
+                    parm_len, parm_data_type, naming_scheme, value = (len(parm_to_ref), parm_to_ref_temp.dataType(),
+                                                                      parm_to_ref_temp.namingScheme(),
+                                                                      list(parm_to_ref.eval()))
                 else:
+                    # for parm just call path method
                     parm_path = parm_to_ref.path()
-                    parm_len, parm_data_type, naming_scheme = (1, parm_to_ref_temp.dataType(),
-                                                               parm_to_ref_temp.namingScheme())
+                    parm_len, parm_data_type, naming_scheme, value = (1, parm_to_ref_temp.dataType(),
+                                                                      parm_to_ref_temp.namingScheme(),
+                                                                      [parm_to_ref.eval()])
+                # parmTuples in wedge node expect 4 value iterable,
+                # if parmTuple we want to reference is less than 4 we need to extend the list to make sure its 4 values
+                value.extend([0] * (4 - len(value)))
+
+                def set_wedge_parm_vals(parm_dict):
+                    # wedge specific function for setting parm values whether its parm or parmTuple
+                    for parm_or_tuple in parm_dict:
+                        multiparm = parm_dict[parm_or_tuple]
+                        for parm in multiparm:
+                            if parm_or_tuple == "parm":
+                                wedge_node.parm(parm).set(value[0])
+                            if parm_or_tuple == "parmTuple":
+                                wedge_node.parmTuple(parm).set(value)
+
+                if parm_data_type == hou.parmData.Float:
+                    float_dict = {"parm": ["floatrange1x", "floatbracket1x"],
+                                  "parmTuple": ["floatrangestart1", "floatvectorcenter1",
+                                                "colorrangestart1", "colorvalue1", "colorcenter1"]}
+                    set_wedge_parm_vals(float_dict)
+                if parm_data_type == hou.parmData.Int:
+                    int_parms = {"parm": ["intrange1x", "intbracket1x"],
+                                 "parmTuple": ["intrangestart1", "intvectorcenter1"]}
+                    set_wedge_parm_vals(int_parms)
+
                 # ask user for wedge type
                 wedge_type_list = ["Range", "Value", "Value list", "Bracket", "Default"]
                 wedge_type_select = hou.ui.displayCustomConfirmation("Select wedge type",
