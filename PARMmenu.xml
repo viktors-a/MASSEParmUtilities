@@ -370,6 +370,42 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
                 </scriptItem>
+
+<!--EDIT PARM IN EXTERNAL EDITOR-->
+            <subMenu id = "MASSE_open_with_editor_parm">
+            <label>Open with editor</label>
+            <context>
+                <expression>
+<![CDATA[
+try:
+  from HoudiniExprEditor import ParmWatcher
+  return ParmWatcher.is_valid_parm(kwargs["parms"][0])
+except:
+  return False
+]]>
+                </expression>
+            </context>
+                <scriptMenuStripDynamic id="MASSE_editors_parm">
+                    <contentsScriptCode><![CDATA[
+import MASSE_parm_utils
+return MASSE_parm_utils.parmUtils.get_external_editors()
+            ]]>
+                    </contentsScriptCode>
+                     <scriptCode><![CDATA[
+import os
+from HoudiniExprEditor import ParmWatcher
+try:
+  reload(ParmWatcher)
+except NameError:
+  from importlib import reload
+  reload(ParmWatcher)
+editor_path = kwargs["selectedtoken"]
+os.environ["EDITOR"] = editor_path
+ParmWatcher.add_watcher(kwargs["parms"][0])
+del os.environ["EDITOR"]
+                    ]]></scriptCode>
+                </scriptMenuStripDynamic>
+            </subMenu>
         </subMenu>
     </menu>
 </menuDocument>

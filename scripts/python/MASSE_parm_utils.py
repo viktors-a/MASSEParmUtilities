@@ -1,6 +1,7 @@
 from typing import Iterable, Optional, Tuple, Generator
 from collections import defaultdict
 import itertools
+import json
 import pdg
 import re
 import hou
@@ -218,6 +219,24 @@ class parmUtils:
                 return
             parmt_temp_group.remove(not_in_folder[-1])
             node.setParmTemplateGroup(parmt_temp_group)
+
+    @staticmethod
+    def get_external_editors() -> list:
+        """Get external editors from userPreferences.json file and return a list for dynamic menu items."""
+        # get file relative form this module
+        pref_file = os.path.join(os.path.dirname(__file__), "../../userPreferences.json")
+        # check if file exists
+        menu_items = []
+        try:
+            with open(pref_file, "r") as f:
+                prefs = json.load(f)
+                external_editors = prefs["externalEditors"]
+                for editor in external_editors:
+                    menu_items.append(external_editors[editor])
+                    menu_items.append(editor)
+                return menu_items
+        except (FileNotFoundError, KeyError):
+            return menu_items
 
     @staticmethod
     def find_valid_env_in_string(kwargs):

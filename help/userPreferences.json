@@ -1,0 +1,8 @@
+{
+    "externalEditors":
+              {
+                "editor_name_1": "path_to_executable",
+                "editor_name_2": "path_to_executable"
+              }
+
+}

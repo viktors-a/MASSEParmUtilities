@@ -1,0 +1,7 @@
+To set up multiple external editor selection:
+    1. make sure labs package is installed
+    2. copy userPreferences.json to root of MASSEParmUtilities folder
+    3. edit userPreferences.json to add your external editors
+The implementation is just a simple extension of labs open in external editor, before external editor is launched
+we set up environment variable "EDITOR" to path in a json file, after launch we delete it, so that config file labs
+tool creates still determines what editor is launched when using labs menu items.
