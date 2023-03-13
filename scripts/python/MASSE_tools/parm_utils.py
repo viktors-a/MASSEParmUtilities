@@ -224,7 +224,7 @@ class parmUtils:
     def get_external_editors() -> list:
         """Get external editors from userPreferences.json file and return a list for dynamic menu items."""
         # get file relative form this module
-        pref_file = os.path.join(os.path.dirname(__file__), "../../userPreferences.json")
+        pref_file = os.path.join(os.path.dirname(__file__), "../../../userPreferences.json")
         # check if file exists
         menu_items = []
         try:

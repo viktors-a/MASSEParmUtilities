@@ -7,16 +7,16 @@
             <scriptItem id="MASSE_attrib_group_fetch_buttons">
                 <label>Create group/attrib fetch buttons</label>
                 <scriptCode><![CDATA[
-import gear_menu_wrapper as wrapper
-wrapper.attrib_group_fetch_buttons(kwargs["node"])
+from MASSE_tools import gear_menu_wrapper as MASSE_wrapper
+MASSE_wrapper.attrib_group_fetch_buttons(kwargs["node"])
 ]]></scriptCode>
             </scriptItem>
 
             <scriptItem id="MASSE_spare_button_delete">
                 <label>Create spare parm delete buttons</label>
                 <scriptCode><![CDATA[
-import gear_menu_wrapper as wrapper
-wrapper.spare_button_delete(kwargs["node"])
+from MASSE_tools import gear_menu_wrapper as wrapper
+MASSE_wrapper.spare_button_delete(kwargs["node"])
 ]]></scriptCode>
             </scriptItem>
         </subMenu>

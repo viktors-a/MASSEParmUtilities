@@ -15,7 +15,7 @@ def spare_button_delete(node):
         new_button = hou.ButtonParmTemplate(name, label, join_with_next=True)
         # callback for deleting parms
         new_button.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-        callback_string = f"""__import__("MASSE_parm_utils").parmUtils.remove_spare_parm(kwargs["node"],
+        callback_string = f"""__import__("MASSE_tools.parm_utils").parm_utils.parmUtils.remove_spare_parm(kwargs["node"],
 delete_all={delete_all}) """
         new_button.setScriptCallback(callback_string)
         button_list.append(new_button)
@@ -44,7 +44,7 @@ def attrib_group_fetch_buttons(node):
         button = hou.ButtonParmTemplate(f"MASSE_fetch_{button_type}", f"Fetch {button_type}",
                                         join_with_next=True)
         button.setScriptCallback \
-            (fr"""__import__("MASSE_group_attrib_utils").AttribGroupUtils.create_group_attrib_names(kwargs["node"],
+            (fr"""__import__("MASSE_tools.group_attrib_utils").group_attrib_utils.AttribGroupUtils.create_group_attrib_names(kwargs["node"],
             "{button_type.title()}") """)
         button.setScriptCallbackLanguage(hou.scriptLanguage.Python)
         button_folder.addParmTemplate(button)

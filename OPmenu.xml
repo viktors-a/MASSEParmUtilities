@@ -23,7 +23,7 @@ hou.putenv("MASSE_PARM_NODE", node_path)
                 <scriptCode>
 <![CDATA[
 def runLater():
-    import MASSE_parm_utils
+    from MASSE_tools import parm_utils as MASSE_parm_utils
     active_path = hou.getenv("MASSE_PARM_NODE")
     MASSE_parm_utils.parmUtils.jump_to_node(env= active_path, parm_type= "parm")
 import hdefereval
@@ -46,7 +46,7 @@ return False
 ]]>
                 </expression>
                 <scriptCode><![CDATA[
-import MASSE_parm_utils
+from MASSE_tools import parm_utils as MASSE_parm_utils
 counter_node = kwargs["node"]
 node_path = counter_node.path()
 hou.putenv("MASSE_MULTIPARM_COUNTER_NODE", node_path)
@@ -71,7 +71,7 @@ return False
 </expression>
                 <scriptCode><![CDATA[
 def runLater():
-    import MASSE_parm_utils
+    from MASSE_tools import parm_utils as MASSE_parm_utils
     active_path = hou.getenv("MASSE_MULTIPARM_COUNTER_NODE")
     MASSE_parm_utils.parmUtils.jump_to_node(env= active_path, parm_type= "multiparm counter")
 import hdefereval
@@ -91,7 +91,7 @@ return False
 </expression>
                 <scriptCode><![CDATA[
 def runLater():
-    import MASSE_parm_utils
+    from MASSE_tools import parm_utils as MASSE_parm_utils
     active_path = hou.parm(hou.getenv("MASSE_MULTIPARM_FOLDER")).node().path()
     MASSE_parm_utils.parmUtils.jump_to_node(env= active_path, parm_type= "multiparm folder node")
 import hdefereval
@@ -111,7 +111,7 @@ return False
 </expression>
                 <scriptCode><![CDATA[
 def runLater():
-    import MASSE_parm_utils
+    from MASSE_tools import parm_utils as MASSE_parm_utils
     MASSE_parm_utils.MultiparmUtils.add_spare_input(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
@@ -123,7 +123,7 @@ hdefereval.executeDeferred(runLater)
                 <label>Rename selected nodes</label>
                 <scriptCode><![CDATA[
 def runLater():
-    import MASSE_parm_utils
+    from MASSE_tools import parm_utils as MASSE_parm_utils
     MASSE_parm_utils.parmUtils.rename_selected_node()
 import hdefereval
 hdefereval.executeDeferred(runLater)
@@ -166,7 +166,7 @@ except Exception as e:
             </context>
                 <scriptMenuStripDynamic id="MASSE_editors_node">
                     <contentsScriptCode><![CDATA[
-import MASSE_parm_utils
+from MASSE_tools import parm_utils as MASSE_parm_utils
 return MASSE_parm_utils.parmUtils.get_external_editors()
             ]]>
                     </contentsScriptCode>

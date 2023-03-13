@@ -1,8 +1,8 @@
 """Module for retirving geometry attributes/groups on nodes that can reference them, like group/attribute rename"""
 import hou
-import pyperclip
+from . import pyperclip
 from collections import defaultdict
-from MASSE_parm_utils import HoudiniError
+from .parm_utils import HoudiniError
 
 attrib_strings = ["point", "prim", "vertex", "global"]
 group_strings = ["point", "prim", "edge", "vertex"]
@@ -76,7 +76,7 @@ class AttribGroupUtils:
                                                      is_button_strip=True, menu_type=hou.menuType.StringToggle,
                                                      join_with_next=True)
                 menu_template.setScriptCallback \
-                    (r"""__import__("MASSE_group_attrib_utils").AttribGroupUtils.button_strip_callback(kwargs)""")
+                    (r"""__import__("MASSE_tools.group_attrib_utils").group_attrib_utils.AttribGroupUtils.button_strip_callback(kwargs)""")
                 menu_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
                 folder_containing_strips.addParmTemplate(menu_template)
             if folder_name in [parm.name() for parm in main_folder.parmTemplates()]:
