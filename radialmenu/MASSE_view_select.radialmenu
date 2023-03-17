@@ -1,0 +1,50 @@
+{
+	"fileversion":"19.5.555",
+	"name":"MASSE_view_select",
+	"categories":"Standard",
+	"pane":"scene",
+	"label":"MASSE view select",
+	"type":"submenu",
+	"items":{
+		"0":{
+			"label":"Top",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Top\"))\n\n"
+		},
+		"1":{
+			"label":"UV",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"UV\"))\n\n"
+		},
+		"2":{
+			"label":"Left",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Left\"))\n\n"
+		},
+		"3":{
+			"label":"Back",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Back\"))\n\n"
+		},
+		"4":{
+			"label":"Bottom",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Bottom\"))\n\n"
+		},
+		"5":{
+			"label":"Front",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Front\"))\n\n"
+		},
+		"6":{
+			"label":"Right",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Right\"))\n\n"
+		},
+		"7":{
+			"label":"Perspective",
+			"type":"script_action",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\n\nimport hdefereval\nhdefereval.executeDeferred(partial(m_scrpt.change_view, \"Perspective\"))\n\n"
+		}
+	}
+}

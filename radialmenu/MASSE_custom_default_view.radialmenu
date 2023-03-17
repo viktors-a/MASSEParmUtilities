@@ -1,0 +1,189 @@
+{
+	"fileversion":"19.5.555",
+	"name":"MASSE_custom_default_view",
+	"categories":"Standard",
+	"pane":"scene",
+	"label":"MASSE custom default view",
+	"type":"submenu",
+	"items":{
+		"0":{
+			"label":"Selection Options",
+			"type":"submenu",
+			"items":{
+				"0":{
+					"label":"Visible Geometry",
+					"type":"script_action",
+					"icon":"TOOLS_select_visible",
+					"check":"radialmenu.isPickingVisibleGeometry(kwargs)",
+					"script":"radialmenu.setPickingVisibleGeometry(kwargs, not radialmenu.isPickingVisibleGeometry(kwargs))"
+				},
+				"2":{
+					"label":"Contained Geometry",
+					"type":"script_action",
+					"icon":"TOOLS_select_contained",
+					"check":"radialmenu.isPickingContainedGeometry(kwargs)",
+					"script":"radialmenu.setPickingContainedGeometry(kwargs, not radialmenu.isPickingContainedGeometry(kwargs))"
+				},
+				"6":{
+					"label":"Whole Geometry",
+					"type":"script_action",
+					"icon":"TOOLS_select_whole",
+					"check":"radialmenu.isWholeGeometryPicking(kwargs)",
+					"script":"radialmenu.setWholeGeometryPicking(kwargs, not radialmenu.isWholeGeometryPicking(kwargs))"
+				}
+			}
+		},
+		"1":{
+			"label":"Select camera",
+			"type":"script_submenu",
+			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\nfrom importlib import reload\nreload(m_scrpt)\n\nmenu = m_scrpt.select_camera(kwargs)\nif menu:\n    radialmenu.setRadialMenu(menu)"
+		},
+		"2":{
+			"label":"Viewport Layout",
+			"type":"submenu",
+			"items":{
+				"0":{
+					"label":"Four Views",
+					"type":"script_action",
+					"icon":"VIEW_layout_quad",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.Quad",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.Quad)"
+				},
+				"1":{
+					"label":"Two Views (Stack)",
+					"type":"script_action",
+					"icon":"VIEW_layout_2stacked",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.DoubleStack",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.DoubleStack, 1)"
+				},
+				"2":{
+					"label":"Two Views (Side)",
+					"type":"script_action",
+					"icon":"VIEW_layout_2side",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.DoubleSide",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.DoubleSide, 1)"
+				},
+				"3":{
+					"label":"Three Views (Bottom)",
+					"type":"script_action",
+					"icon":"VIEW_layout_3bottom",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.TripleBottomSplit",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.TripleBottomSplit, 1)"
+				},
+				"4":{
+					"label":"Three Views (Left)",
+					"type":"script_action",
+					"icon":"VIEW_layout_3left",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.TripleLeftSplit",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.TripleLeftSplit, 1)"
+				},
+				"5":{
+					"label":"Four Views (bottom)",
+					"type":"script_action",
+					"icon":"VIEW_layout_4bottom",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.QuadBottomSplit",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.QuadBottomSplit, 1)"
+				},
+				"7":{
+					"label":"Single View",
+					"type":"script_action",
+					"icon":"VIEW_layout_single",
+					"check":"radialmenu.viewportLayout(kwargs) == hou.geometryViewportLayout.Single",
+					"script":"radialmenu.setViewportLayout(kwargs, hou.geometryViewportLayout.Single, 1)"
+				}
+			}
+		},
+		"4":{
+			"label":"Shading",
+			"type":"submenu",
+			"items":{
+				"1":{
+					"label":"Wireframe",
+					"type":"script_action",
+					"icon":"VIEW_wireframe",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.Wire",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.Wire)"
+				},
+				"2":{
+					"label":"Wireframe Ghost",
+					"type":"script_action",
+					"icon":"VIEW_wireframe_ghost",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.WireGhost",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.WireGhost)"
+				},
+				"3":{
+					"label":"Smooth Wire Shaded",
+					"type":"script_action",
+					"icon":"VIEW_smooth_wireframe",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.SmoothWire",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.SmoothWire)"
+				},
+				"4":{
+					"label":"Smooth Shaded",
+					"type":"script_action",
+					"icon":"VIEW_smooth",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.Smooth",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.Smooth)"
+				},
+				"5":{
+					"label":"Flat Wire Shaded",
+					"type":"script_action",
+					"icon":"VIEW_flat_wireframe",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.FlatWire",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.FlatWire)"
+				},
+				"6":{
+					"label":"Flat Shaded",
+					"type":"script_action",
+					"icon":"VIEW_flat",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.Flat",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.Flat)"
+				},
+				"7":{
+					"label":"Hidden Line Ghost",
+					"type":"script_action",
+					"icon":"VIEW_hiddenline_ghost",
+					"check":"radialmenu.shadingMode(kwargs) == hou.glShadingType.HiddenLineGhost",
+					"script":"radialmenu.setShadingMode(kwargs, hou.glShadingType.HiddenLineGhost)"
+				}
+			}
+		},
+		"5":{
+			"label":"Select camera",
+			"type":"script_submenu",
+			"script":"# Fill the cardinal directions (N, S, E, W) first, then the diagonals\nslots = (\"n\", \"s\", \"e\", \"w\", \"ne\", \"se\", \"nw\", \"sw\")\nlight_types = (\"light\", \"distantlight\", \"domelight\")\nlop_category = hou.nodeTypeCategories()[\"Lop\"]\n\nlights = []\nfor light_type in light_types:\n    # Get the node type object\n    nodetype = hou.nodeType(lop_category, light_type)\n    # Find the instances of this node type and add them to the list\n    lights.extend(nodetype.instances())\n\n# Sort the list of light nodes by their last modified times (reversed so\n# the most recently modified nodes are at the front)\nlights.sort(key=lambda n: n.modificationTime(), reverse=True)\n\n# Build a menu from the most recent lights\nmenu = {}\nfor slot, light in zip(slots, lights[:8]):\n    menu[slot] = {\n        \"type\": \"script_action\",\n        \"label\": light.name(),\n        \"icon\": light.type().icon(),\n        \"script\": lambda n=light, **kwargs: n.setCurrent(True, clear_all_selected=True)\n    }\nif menu:\n    radialmenu.setRadialMenu(menu)"
+		},
+		"6":{
+			"label":"Selection Tools",
+			"type":"submenu",
+			"items":{
+				"0":{
+					"label":"Laser",
+					"type":"script_action",
+					"icon":"TOOLS_select_mode_laser",
+					"check":"radialmenu.pickStyle(kwargs) == hou.pickStyle.Laser",
+					"script":"radialmenu.setPickStyle(kwargs, hou.pickStyle.Laser)"
+				},
+				"4":{
+					"label":"Lasso",
+					"type":"script_action",
+					"icon":"TOOLS_select_mode_lasso",
+					"check":"radialmenu.pickStyle(kwargs) == hou.pickStyle.Lasso",
+					"script":"radialmenu.setPickStyle(kwargs, hou.pickStyle.Lasso)"
+				},
+				"6":{
+					"label":"Box",
+					"type":"script_action",
+					"icon":"TOOLS_select_mode_boxselect",
+					"check":"radialmenu.pickStyle(kwargs) == hou.pickStyle.Box",
+					"script":"radialmenu.setPickStyle(kwargs, hou.pickStyle.Box)"
+				}
+			}
+		},
+		"7":{
+			"label":"Set view",
+			"type":"script_submenu",
+			"script":"radialmenu.setRadialMenu(\"MASSE_view_select\")"
+		}
+	}
+}
