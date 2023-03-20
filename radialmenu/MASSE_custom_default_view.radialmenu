@@ -36,7 +36,7 @@
 		"1":{
 			"label":"Select camera",
 			"type":"script_submenu",
-			"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\nfrom importlib import reload\nreload(m_scrpt)\n\nmenu = m_scrpt.select_camera(kwargs)\nif menu:\n    radialmenu.setRadialMenu(menu)"
+			"script":"radialmenu.setRadialMenu(\"MASSE_camera_select\")"
 		},
 		"2":{
 			"label":"Viewport Layout",

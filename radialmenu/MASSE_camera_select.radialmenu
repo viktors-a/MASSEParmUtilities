@@ -1,0 +1,9 @@
+{
+	"fileversion":"19.5.555",
+	"name":"MASSE_camera_select",
+	"categories":"Standard",
+	"pane":"scene",
+	"label":"MASSE camera select",
+	"type":"script_submenu",
+	"script":"from MASSE_tools import radial_menu_scripts as m_scrpt\nfrom functools import partial\nimport hdefereval\n\nmenu = m_scrpt.select_camera(kwargs)\nif menu:\n    radialmenu.setRadialMenu(menu)\n    hdefereval.executeDeferred(partial(radialmenu.setRadialMenu, menu))\n    \n    \n"
+}
