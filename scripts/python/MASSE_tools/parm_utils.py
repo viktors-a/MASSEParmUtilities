@@ -7,6 +7,8 @@ import re
 import hou
 import os
 
+pref_file = os.path.join(os.path.dirname(__file__), "../../../userPreferences.json")
+
 
 class HoudiniError(Exception):
     """Display message in houdini"""
@@ -221,22 +223,122 @@ class parmUtils:
             node.setParmTemplateGroup(parmt_temp_group)
 
     @staticmethod
-    def get_external_editors() -> list:
-        """Get external editors from userPreferences.json file and return a list for dynamic menu items."""
-        # get file relative form this module
-        pref_file = os.path.join(os.path.dirname(__file__), "../../../userPreferences.json")
-        # check if file exists
+    def menu_items_from_json_key(key):
         menu_items = []
         try:
             with open(pref_file, "r") as f:
                 prefs = json.load(f)
-                external_editors = prefs["externalEditors"]
+                external_editors = prefs[key]
                 for editor in external_editors:
                     menu_items.append(external_editors[editor])
                     menu_items.append(editor)
                 return menu_items
         except (FileNotFoundError, KeyError):
             return menu_items
+
+    def paste_expression(self):
+        try:
+            selected_expression = self.kwargs["selectedtoken"]
+        except KeyError:
+            selected_expression = None
+        # pop up select menu if found geo_ref in expression
+        if selected_expression:
+            # split string with regex to get all entries between `
+            expr_sep = r"'(.*?)'"
+            expression_list = re.findall(expr_sep, selected_expression)
+            select_ui = hou.ui.selectFromList(expression_list, exclusive=True)
+            # only proceed if user selected something
+            if select_ui:
+                # make sure only one expression will be selected
+                selected_expression = expression_list[select_ui[0]]
+                # default input_dict alwyas allows to replace geo_ref to 0
+                input_dict = {"Cancel": 0, "Append": [0, "append"], "Set": [0, "set"]}
+                # find 'geo_ref' found in expression process further
+                geo_ref = selected_expression.find("geo_ref")
+                if geo_ref != -1:
+                    input_dict = {"Cancel": 0, "Append[0]": [0, "append"], "Set[0]": [0, "set"]}
+                    # get possible spare inputs, add them to input_dict
+                    spare_inputs = [parm for parm in self.parm_node.spareParms()
+                                    if re.match(r"spare_input\d+", parm.name())]
+                    if spare_inputs:
+                        for spare_input in spare_inputs:
+                            parm_name = spare_input.name()
+                            input_number = re.findall(r"\d+", parm_name)[-1]
+                            geo_ref = -1 - (int(input_number))
+                            append_key = f"Append[{geo_ref}]"
+                            input_dict[append_key] = [geo_ref, "append"]
+                            set_key = f"Set[{geo_ref}]"
+                            input_dict[set_key] = [geo_ref, "set"]
+                # create expression modifier ui
+                message = "Select geometry reference for expression\n" \
+                          "formats: [EDIT EXPRESSION] [OPTIONAL PREFIX(if append)]\n" \
+                          "or OPTIONAL PREFIX(if append)"
+                key_list = list(input_dict.keys())
+                editable_expression = f"[{selected_expression}] []"
+                input_select_ui = hou.ui.readInput(message, buttons=key_list, initial_contents=editable_expression)
+                # select input_dict based on button pressed
+                selected_button, optional_string = input_select_ui
+                if selected_button > 0:
+                    # get all enries between [] in optional_string
+                    editable_expression = re.findall(r"\[(.*?)]", optional_string)
+                    # if two entries are found, update selected_expression and optional_string otherwise
+                    # optional_string will act as prefix if append button pressed
+                    if len(editable_expression) == 2:
+                        selected_expression, optional_string = editable_expression
+                    if len(editable_expression) == 1:
+                        selected_expression = editable_expression[0]
+                        optional_string = ""
+                    input_dict_key = key_list[selected_button]
+                    new_geo_ref, action = input_dict[input_dict_key]
+                    # replace expression with new geo_ref if needed
+                    selected_expression = selected_expression.replace("geo_ref", str(new_geo_ref))
+                    # append or set expression
+                    data_type = self.parms[0].parmTemplate().dataType()
+                    for parm in self.parms:
+                        # besed on wether parm has keyframes getting string value is different
+                        has_keyframes = parm.keyframes()
+                        if data_type == hou.parmData.String:
+                            if len(has_keyframes) == 0:
+                                selected_expression = f"`{selected_expression}`"
+                            if action == "append":
+                                selected_expression = f"{optional_string} {selected_expression}"
+                        else:
+                            if action == "append":
+                                selected_expression = f"{optional_string} {selected_expression}"
+                            else:
+                                selected_expression = f"{selected_expression}"
+                        # clean up expression
+                        selected_expression = self.clean_expression(selected_expression).strip()
+                        # configure string parm
+                        if has_keyframes:
+                            keyframe = has_keyframes[-1]
+                            parm_val = keyframe.expression().strip()
+                            if action == "append":
+                                keyframe.setExpression(" ".join((parm_val, selected_expression)))
+                                parm.setKeyframe(keyframe)
+                                continue
+                            else:
+                                keyframe.setExpression(selected_expression)
+                                parm.setKeyframe(keyframe)
+                                continue
+                        else:
+                            if data_type == hou.parmData.String:
+                                parm_val = parm.unexpandedString().strip()
+                                function_call = "set"
+                            else:
+                                parm_val = parm.eval()
+                                function_call = "setExpression"
+                            if action == "append":
+                                getattr(parm, function_call)(" ".join((str(parm_val), selected_expression)))
+                                continue
+                            else:
+                                getattr(parm, function_call)(selected_expression)
+                                continue
+
+    @staticmethod
+    def clean_expression(expression: str):
+        # celaen up expression by removing extra spaces
+        return re.sub(r"\s+", " ", expression).strip()
 
     @staticmethod
     def find_valid_env_in_string(kwargs):

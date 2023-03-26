@@ -3,6 +3,21 @@
               {
                 "editor_name_1": "path_to_executable",
                 "editor_name_2": "path_to_executable"
-              }
+              },
+      "parmExpressions":
+            {
+              "bbox": ["bbox(geo_ref, D_XMIN)",
+                "bbox(geo_ref, D_XMAX)",
+                "bbox(geo_ref, D_YMIN)",
+                "bbox(geo_ref, D_YMAX)",
+                "bbox(geo_ref, D_ZMIN)",
+                "bbox(geo_ref, D_ZMAX)",
+                "bbox(geo_ref, D_XSIZE)"
+              , "bbox(geo_ref, D_YSIZE)",
+                "bbox(geo_ref, D_ZSIZE)"],
+              "centroid": ["centroid(geo_ref, D_X)",
+                "centroid(geo_ref, D_Y)",
+                "centroid(geo_ref, D_Z)"]
+            }
 
 }

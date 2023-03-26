@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <menuDocument>
     <menu>
+<!--       PASTE EPRESSION REPLACE -->
+    <subMenu id="MASSE_paste_expression">
+    <insertAfter>expression_menu</insertAfter>
+    <label>MASSE Paste Expression</label>
+    <scriptMenuStripDynamic id="MASSE_json_expressions">
+        <contentsScriptCode><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+return MASSE_parm_utils.parmUtils.menu_items_from_json_key("parmExpressions")
+        ]]></contentsScriptCode>
+        <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).paste_expression()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+        ]]></scriptCode>
+    </scriptMenuStripDynamic>
+</subMenu>
         <subMenu id = "MASSE_PARMmenu_utils">
         <insertAfter>expression_menu</insertAfter>
         <label>MASSE Parm Utils</label>
@@ -388,7 +406,7 @@ except:
                 <scriptMenuStripDynamic id="MASSE_editors_parm">
                     <contentsScriptCode><![CDATA[
 from MASSE_tools import parm_utils as MASSE_parm_utils
-return MASSE_parm_utils.parmUtils.get_external_editors()
+return MASSE_parm_utils.parmUtils.menu_items_from_json_key("externalEditors")
             ]]>
                     </contentsScriptCode>
                      <scriptCode><![CDATA[
@@ -408,5 +426,6 @@ del os.environ["EDITOR"]
             </subMenu>
         </subMenu>
     </menu>
+
 </menuDocument>
 
