@@ -3,6 +3,8 @@ IMPORTANT:
             
     -For any tools that use userPreferences.json file, for tools to find the file, place it at the root of this package folder.
     -For how json file should look, open userPreferences.json in this folder, edit and copy to root of the package.
+[Playlist of videos showing how to use the tools](https://youtube.com/playlist?list=PLUBK6gGjWEeojLKIa3_HQVU8L4jUja_dy)
+
 MULTIPLE EXTERNAL EDITOR SELECTION GUIDE:
 
     1. make sure labs package is installed
