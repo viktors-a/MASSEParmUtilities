@@ -167,7 +167,7 @@ except Exception as e:
                 <scriptMenuStripDynamic id="MASSE_editors_node">
                     <contentsScriptCode><![CDATA[
 from MASSE_tools import parm_utils as MASSE_parm_utils
-return MASSE_parm_utils.parmUtils.get_external_editors()
+return MASSE_parm_utils.parmUtils.menu_items_from_json_key("externalEditors")
             ]]>
                     </contentsScriptCode>
                      <scriptCode><![CDATA[
