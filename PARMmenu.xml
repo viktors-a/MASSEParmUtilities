@@ -13,7 +13,7 @@ return MASSE_parm_utils.parmUtils.menu_items_from_json_key("parmExpressions")
         <scriptCode><![CDATA[
 def runLater():
     from MASSE_tools import parm_utils as MASSE_parm_utils
-    MASSE_parm_utils.parmUtils(kwargs).paste_expression()
+    MASSE_parm_utils.parmUtils(kwargs).paste_expression_from_json()
 import hdefereval
 hdefereval.executeDeferred(runLater)
         ]]></scriptCode>
@@ -63,6 +63,28 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
+
+
+<!--REFERENECE CURRENT PARM NODE PARM-->
+            <scriptItem id = "MASSE_ref_cur_node_parm">
+                <label>Reference current parm node parm</label>
+                <expression><![CDATA[
+if hou.node(hou.getenv("MASSE_PARM_NODE")):
+    return True
+else:
+    return False
+]]>
+                </expression>
+
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).paste_cur_node_parm_ref()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+        ]]>     </scriptCode>
+            </scriptItem>
+
 
 
             <scriptItem id = "MASSE_remove_parm">

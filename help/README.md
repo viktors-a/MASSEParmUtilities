@@ -14,7 +14,7 @@ MULTIPLE EXTERNAL EDITOR SELECTION GUIDE:
     we set up environment variable "EDITOR" to path in a json file, after launch we delete it, so that config file labs
     tool creates still determines what editor is launched when using labs menu items.
 
-ADD YOUR OWN EXPRESSONS TO PASTER EXPRESSION MENU:
+ADD YOUR OWN EXPRESSONS TO PASTE EXPRESSION MENU:
 
     1. copy userPreferences.json to root of MASSEParmUtilities folder
     2. edit userPreferences.json to add your expressions
@@ -24,3 +24,13 @@ ADD YOUR OWN EXPRESSONS TO PASTER EXPRESSION MENU:
     - Based on whether "geo_ref" in found in expression, menu after expression selection will be different.
     - If spare input parms are found on node, they will be added to menu as buttons and if selected it
     will replace "geo_ref" on expression.
+
+
+REFERENCE CURRENT PARM NODE:
+
+    1. for menu to appear, you must have select one nodea as a active parm node under [MASSE_TOOLS -> Set as parm node] op menu
+    2. now user can reference current parm node in parms
+    -default behavior is to replace current parm value with parm node parm relative path
+    -if alt is pressed when menu item is selected, tool will append to current parm value
+    -although this tools intention is to reference parm from parm node selected by user, it can be used to reference any node parm
+    

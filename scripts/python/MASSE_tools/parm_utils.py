@@ -236,7 +236,52 @@ class parmUtils:
         except (FileNotFoundError, KeyError):
             return menu_items
 
-    def paste_expression(self):
+    def edit_parm(self, action, data_type: hou.parmData, optional_string, selected_expressions):
+        """ insert or replace each self.parms value with expression"""
+        # zip parms and expressions, if len is not equal, editing will be done only on same index pairs
+        for parm, selected_expression in zip(self.parms, selected_expressions):
+            # besed on whether parm has keyframes getting string value is different
+            has_keyframes = parm.keyframes()
+            if data_type == hou.parmData.String:
+                if len(has_keyframes) == 0:
+                    selected_expression = f"`{selected_expression}`"
+                if action == "append":
+                    selected_expression = f"{optional_string} {selected_expression}"
+            else:
+                if action == "append":
+                    selected_expression = f"{optional_string} {selected_expression}"
+                else:
+                    selected_expression = f"{selected_expression}"
+            # clean up expression
+            selected_expression = self.clean_expression(selected_expression).strip()
+            # set parm value
+            if has_keyframes:
+                keyframe = has_keyframes[-1]
+                parm_val = keyframe.expression().strip()
+                if action == "append":
+                    keyframe.setExpression(" ".join((parm_val, selected_expression)))
+                    parm.setKeyframe(keyframe)
+                    continue
+                else:
+                    keyframe.setExpression(selected_expression)
+                    parm.setKeyframe(keyframe)
+                    continue
+            else:
+                if data_type == hou.parmData.String:
+                    parm_val = parm.unexpandedString().strip()
+                    function_call = "set"
+                else:
+                    parm_val = parm.eval()
+                    function_call = "setExpression"
+                if action == "append":
+                    getattr(parm, function_call)(" ".join((str(parm_val), selected_expression)))
+                    continue
+                else:
+                    getattr(parm, function_call)(selected_expression)
+                    continue
+
+    def paste_expression_from_json(self):
+        """ implementation of expression pasting for dynamic menu items based on json file"""
         try:
             selected_expression = self.kwargs["selectedtoken"]
         except KeyError:
@@ -294,46 +339,63 @@ class parmUtils:
                     selected_expression = selected_expression.replace("geo_ref", str(new_geo_ref))
                     # append or set expression
                     data_type = self.parms[0].parmTemplate().dataType()
-                    for parm in self.parms:
-                        # besed on wether parm has keyframes getting string value is different
-                        has_keyframes = parm.keyframes()
-                        if data_type == hou.parmData.String:
-                            if len(has_keyframes) == 0:
-                                selected_expression = f"`{selected_expression}`"
-                            if action == "append":
-                                selected_expression = f"{optional_string} {selected_expression}"
-                        else:
-                            if action == "append":
-                                selected_expression = f"{optional_string} {selected_expression}"
-                            else:
-                                selected_expression = f"{selected_expression}"
-                        # clean up expression
-                        selected_expression = self.clean_expression(selected_expression).strip()
-                        # configure string parm
-                        if has_keyframes:
-                            keyframe = has_keyframes[-1]
-                            parm_val = keyframe.expression().strip()
-                            if action == "append":
-                                keyframe.setExpression(" ".join((parm_val, selected_expression)))
-                                parm.setKeyframe(keyframe)
-                                continue
-                            else:
-                                keyframe.setExpression(selected_expression)
-                                parm.setKeyframe(keyframe)
-                                continue
-                        else:
-                            if data_type == hou.parmData.String:
-                                parm_val = parm.unexpandedString().strip()
-                                function_call = "set"
-                            else:
-                                parm_val = parm.eval()
-                                function_call = "setExpression"
-                            if action == "append":
-                                getattr(parm, function_call)(" ".join((str(parm_val), selected_expression)))
-                                continue
-                            else:
-                                getattr(parm, function_call)(selected_expression)
-                                continue
+                    # dublicate selected_expression in a list 3 times
+                    selected_expressions = [selected_expression] * len(self.parms)
+                    self.edit_parm(action, data_type, optional_string, selected_expressions)
+
+    def paste_cur_node_parm_ref(self):
+        """if parm node is set, pop up parm select menu with preselected current parm node"""
+        cur_parm_node = hou.getenv("MASSE_PARM_NODE")
+        parm_node = hou.node(cur_parm_node)
+        selected_parm = None
+        if parm_node:
+            def show_only_cur_node(node):
+                if node.path() == cur_parm_node:
+                    return True
+
+            if cur_parm_node:
+                # pop up ui with preselected current parm node and create relative expression if user selects one,
+                # with option to append or set expression based on altclick
+                if self.kwargs["altclick"]:
+                    action = "append"
+                else:
+                    action = "set"
+                # pass tuple of path to current parm node, so it is preselected when UI pops up
+                initial_selection = (cur_parm_node,)
+                # if munu pressed from parm label select parmTuple otherwise select parm
+                if len(self.parms) > 1:
+                    tuple_call = "parmTuple"
+                    user_selection = hou.ui.selectParmTuple(initial_parm_tuples=initial_selection)
+                else:
+                    tuple_call = "parm"
+                    user_selection = hou.ui.selectParm(initial_parms=initial_selection)
+                parm_selected = user_selection[-1]
+                # check if parm or parmTuple was selected, if not, do not proceed
+                if tuple_call == "parmTuple":
+                    parm_tuple = hou.parmTuple(parm_selected)
+                    if parm_tuple:
+                        selected_parm = list(parm_tuple)
+                else:
+                    parm = hou.parm(parm_selected)
+                    if parm:
+                        selected_parm = [parm]
+                if selected_parm:
+                    # get data type based on dateType
+                    data_type = self._parm.dataType()
+                    ch_ref_type = selected_parm[0].parmTemplate().dataType()
+                    # get ch or chs based on parmData
+                    if ch_ref_type == hou.parmData.String:
+                        ch_type = "chs"
+                    else:
+                        ch_type = "ch"
+                    # get relative path to parm node
+                    relative_path = self.parm_node.relativePathTo(parm_node)
+                    # make expression list for each parm in tuple
+                    expression_list = []
+                    for parm, cur_node_parm in zip(self.parms, selected_parm):
+                        expression_list.append(f"{ch_type}('{relative_path}/{cur_node_parm.name()}')")
+                    # edit parms
+                    self.edit_parm(action, data_type, "", expression_list)
 
     @staticmethod
     def clean_expression(expression: str):
