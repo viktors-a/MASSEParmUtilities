@@ -40,17 +40,18 @@ def attrib_group_fetch_buttons(node):
     label = "MASSE group/attrib buttons"
     button_folder = hou.FolderParmTemplate(folder_name, label, folder_type=hou.folderType.Collapsible)
     button_types = ["attributes", "groups"]
-    for button_type in button_types:
-        button = hou.ButtonParmTemplate(f"MASSE_fetch_{button_type}", f"Fetch {button_type}",
-                                        join_with_next=True)
-        button.setScriptCallback \
-            (fr"""__import__("MASSE_tools.group_attrib_utils").group_attrib_utils.AttribGroupUtils.create_group_attrib_names(kwargs["node"],
-            "{button_type.title()}") """)
-        button.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-        button_folder.addParmTemplate(button)
-    node_path = hou.MenuParmTemplate("MASSE_input_index", "Node input index:", ("This node", "0", "1", "2", "3"),
-                                     is_button_strip=True, menu_type=hou.menuType.Normal)
+    button = hou.ButtonParmTemplate(f"MASSE_fetch_goeo_data", f"Fetch geo data",
+                                    join_with_next=True)
+    button.setScriptCallback \
+        (fr"""__import__("MASSE_tools.group_attrib_utils").group_attrib_utils.AttribGroupUtils.create_group_attrib_names(kwargs["node"]) """)
+    button.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    button_folder.addParmTemplate(button)
+    node_path = hou.MenuParmTemplate("MASSE_input_index", "Node input index:",
+                                     ("This node", "0", "1", "2", "3", "Custom path"),
+                                     is_button_strip=True, menu_type=hou.menuType.Normal, join_with_next=True)
+    custom_path_string = hou.StringParmTemplate("MASSE_custom_path", "Path", 1, default_value=("-1",))
     button_folder.addParmTemplate(node_path)
+    button_folder.addParmTemplate(custom_path_string)
     # if folder already exist, remove it
     content_folder = template_group.find(folder_name)
     if content_folder:
