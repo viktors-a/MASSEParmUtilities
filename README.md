@@ -38,7 +38,7 @@ To install:
 
 #### Open with multiple external editors
 
-![](help/showcase/open_in_external.webp)
+![](help/showcase/open_in_external.gif)
 
 #### Rename multiple nodes
 
