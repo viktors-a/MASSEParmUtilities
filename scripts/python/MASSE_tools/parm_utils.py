@@ -344,58 +344,58 @@ class parmUtils:
                     self.edit_parm(action, data_type, optional_string, selected_expressions)
 
     def paste_cur_node_parm_ref(self):
-        """if parm node is set, pop up parm select menu with preselected current parm node"""
+        """if parm node is set, pop up node data select window with only path to current parm node"""
         cur_parm_node = hou.getenv("MASSE_PARM_NODE")
         parm_node = hou.node(cur_parm_node)
-        selected_parm = None
-        if parm_node:
+        # only proceed if parm node exsists
+        if cur_parm_node:
+            # check if alt key is pressed when menu item is clicked to append expression, else replace parm value
+            if self.kwargs["altclick"]:
+                action = "append"
+            else:
+                action = "set"
+            # if menu is activated from parm label, fetch parmTuples, otherwise fetch parms
+            if len(self.parms) > 1:
+                select_tuple = False
+                tuple_call = "parmTuple"
+
+            else:
+                select_tuple = True
+                tuple_call = "parm"
+
             def show_only_cur_node(node):
                 if node.path() == cur_parm_node:
                     return True
-
-            if cur_parm_node:
-                # pop up ui with preselected current parm node and create relative expression if user selects one,
-                # with option to append or set expression based on altclick
-                if self.kwargs["altclick"]:
-                    action = "append"
+            new_ui = hou.ui.selectNodeData(include_object_transforms=False, include_geometry_bounding_boxes=False,
+                                           include_geometry_attributes=False,
+                                           width=400, expand_components=select_tuple, height=600,
+                                           custom_node_filter_callback=show_only_cur_node)
+            try:
+                parm_selected = new_ui["Parameters"][-1]
+            except KeyError:
+                return
+            # convert selected parm into list whether it is a tuple or parm
+            if tuple_call == "parmTuple":
+                selected_parm = list(parm_selected)
+            else:
+                selected_parm = [parm_selected]
+            if selected_parm:
+                # get data type based on dataType
+                data_type = self._parm.dataType()
+                ch_ref_type = selected_parm[0].parmTemplate().dataType()
+                # get ch or chs based on parmData
+                if ch_ref_type == hou.parmData.String:
+                    ch_type = "chs"
                 else:
-                    action = "set"
-                # pass tuple of path to current parm node, so it is preselected when UI pops up
-                initial_selection = (cur_parm_node,)
-                # if munu pressed from parm label select parmTuple otherwise select parm
-                if len(self.parms) > 1:
-                    tuple_call = "parmTuple"
-                    user_selection = hou.ui.selectParmTuple(initial_parm_tuples=initial_selection)
-                else:
-                    tuple_call = "parm"
-                    user_selection = hou.ui.selectParm(initial_parms=initial_selection)
-                parm_selected = user_selection[-1]
-                # check if parm or parmTuple was selected, if not, do not proceed
-                if tuple_call == "parmTuple":
-                    parm_tuple = hou.parmTuple(parm_selected)
-                    if parm_tuple:
-                        selected_parm = list(parm_tuple)
-                else:
-                    parm = hou.parm(parm_selected)
-                    if parm:
-                        selected_parm = [parm]
-                if selected_parm:
-                    # get data type based on dateType
-                    data_type = self._parm.dataType()
-                    ch_ref_type = selected_parm[0].parmTemplate().dataType()
-                    # get ch or chs based on parmData
-                    if ch_ref_type == hou.parmData.String:
-                        ch_type = "chs"
-                    else:
-                        ch_type = "ch"
-                    # get relative path to parm node
-                    relative_path = self.parm_node.relativePathTo(parm_node)
-                    # make expression list for each parm in tuple
-                    expression_list = []
-                    for parm, cur_node_parm in zip(self.parms, selected_parm):
-                        expression_list.append(f"{ch_type}('{relative_path}/{cur_node_parm.name()}')")
-                    # edit parms
-                    self.edit_parm(action, data_type, "", expression_list)
+                    ch_type = "ch"
+                # get relative path to parm node
+                relative_path = self.parm_node.relativePathTo(parm_node)
+                # make expression list for each parm in tuple
+                expression_list = []
+                for parm, cur_node_parm in zip(self.parms, selected_parm):
+                    expression_list.append(f"{ch_type}('{relative_path}/{cur_node_parm.name()}')")
+                # edit parms
+                self.edit_parm(action, data_type, "", expression_list)
 
     @staticmethod
     def clean_expression(expression: str):
