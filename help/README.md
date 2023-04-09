@@ -34,3 +34,9 @@ REFERENCE CURRENT PARM NODE:
     -if alt is pressed when menu item is selected, tool will append to current parm value
     -although this tools intention is to reference parm from parm node selected by user, it can be used to reference any node parm
     
+GET PDG ATTRIBUTES:
+
+    1. make sure that active work item is present for menu to appear
+    2. alt click on menu will append selected attributes to parm, else it will replace current parm value
+    3. default behavior is to joint all attribute expressions without spaces, if ctrl is pressed when menu item is selected
+    tool will add _ between attribute, this is done to make it easier to use attributes in dynamic file names/paths when rendering with pdg

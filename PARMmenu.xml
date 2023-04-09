@@ -286,26 +286,7 @@ hdefereval.executeDeferred(runLater)
 
 
             <scriptItem id = "MASSE_pdg_attribute_replace">
-                <label>Get PDG attributes(replace)</label>
-<expression>
-<![CDATA[
-import pdg
-if pdg.workItem():
-    return True
-return False
-]]>
-</expression>
-                <scriptCode><![CDATA[
-def runLater():
-    from MASSE_tools import parm_utils as MASSE_parm_utils
-    MASSE_parm_utils.parmUtils(kwargs).create_pdg_attrib_expression(replace=True)
-import hdefereval
-hdefereval.executeDeferred(runLater)
-]]>             </scriptCode>
-                </scriptItem>
-
-            <scriptItem id = "MASSE_pdg_attribute_append">
-                <label>Get PDG attributes(append)</label>
+                <label>Get PDG attributes</label>
 <expression>
 <![CDATA[
 import pdg

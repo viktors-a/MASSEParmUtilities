@@ -47,3 +47,15 @@ To install:
 #### Remove single parameter 
 
 ![](help/showcase/remove_parm.gif)
+
+#### Add parameter to multiparm folder
+
+![](help/showcase/add_to_multiparm_folder.gif)
+
+#### Get pdg attributes
+
+![](help/showcase/get_pdg_attribs.gif)
+
+#### Get pdg input/output tags
+
+![](help/showcase/pdg_get_input_output.gif)

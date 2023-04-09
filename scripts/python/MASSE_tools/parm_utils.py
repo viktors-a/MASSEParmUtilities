@@ -20,13 +20,15 @@ class parmUtils:
         self.kwargs = kwargs
         self.parms = kwargs["parms"]
         self.parm = kwargs["parms"][0]
+        self.parm_len = len(self.parms)
         self.parm_node = self.parm.node()
         self.parm_tuple = self.parm.tuple()
         self.parm_group = self.parm_node.parmTemplateGroup()
-        self._parm = self.parm_tuple.parmTemplate()  # original parm
+        self.parm_template = self.parm.parmTemplate()
+        self.data_type = self.parm_template.dataType()
 
     @property
-    def parm_controll_node(self) -> Optional[str]:
+    def parm_control_node(self) -> Optional[hou.Node]:
         # node on witch set referenced parms
         env = hou.getenv("MASSE_PARM_NODE")
         if env:
@@ -42,24 +44,31 @@ class parmUtils:
     @property
     def channel_type(self):
         # channel expression funchtion name based on data type its holds
-        if isinstance(self._parm, hou.StringParmTemplate):
+        if isinstance(self.parm_template, hou.StringParmTemplate):
             return "chs"
         return "ch"
 
     @property
     def holds_string(self):
         # returns true if parm hold string value
-        if self._parm.type() == hou.parmTemplateType.String:
+        if self.parm_template.type() == hou.parmTemplateType.String:
             return True
         return False
 
     @property
     def hda_template_group(self) -> Optional[hou.ParmTemplateGroup]:
         # check if the active parm node is a  hda, if is returns hda parm template group
-        if self.parm_controll_node.type().definition():
-            return self.parm_controll_node.type().definition().parmTemplateGroup()
+        if self.parm_control_node.type().definition():
+            return self.parm_control_node.type().definition().parmTemplateGroup()
         else:
             return None
+
+    @property
+    def sorted_parms(self) -> list:
+        if self.parm_len > 1:
+            return [parm for parm in self.parm_tuple]
+        else:
+            return [self.parm]
 
     @staticmethod
     def rename_selected_node():
@@ -236,34 +245,44 @@ class parmUtils:
         except (FileNotFoundError, KeyError):
             return menu_items
 
-    def edit_parm(self, action, data_type: hou.parmData, optional_string, selected_expressions):
-        """ insert or replace each self.parms value with expression"""
-        # zip parms and expressions, if len is not equal, editing will be done only on same index pairs
-        for parm, selected_expression in zip(self.parms, selected_expressions):
+    def parm_ready_string(self, data_type: hou.parmData, exprs_to_format: iter, optional_prefix="",
+                          joint_with: str = " ") -> list:
+        """format strings for parm expressions apropiately based on data type and keyframes expr_to_format should be
+        an itarabel of iterables, where each inner iterable is an iterable of  expression, that will be joined,
+        this is format is used because some tools allow to set select multiple expressions at once"""
+        formatted_exprs = []
+        # amount of formated strings will be equal to pairs of parms and exp_to_format, ideally they should be equal
+        for parm, exprs_comp_to_format in zip(self.sorted_parms, exprs_to_format):
+            formatted_component = []
             # besed on whether parm has keyframes getting string value is different
             has_keyframes = parm.keyframes()
-            if data_type == hou.parmData.String:
-                if len(has_keyframes) == 0:
-                    selected_expression = f"`{selected_expression}`"
-                if action == "append":
-                    selected_expression = f"{optional_string} {selected_expression}"
-            else:
-                if action == "append":
-                    selected_expression = f"{optional_string} {selected_expression}"
-                else:
-                    selected_expression = f"{selected_expression}"
-            # clean up expression
-            selected_expression = self.clean_expression(selected_expression).strip()
-            # set parm value
+            for expr in exprs_comp_to_format:
+                if data_type == hou.parmData.String:
+                    if len(has_keyframes) == 0:
+                        expr = f"`{expr}`"
+                formatted_component.append(expr)
+            # join expressions
+            formatted_expr = self.clean_expression(joint_with.join(formatted_component)).strip()
+            if optional_prefix:
+                formatted_expr = f"{optional_prefix}{formatted_expr}"
+            formatted_exprs.append(formatted_expr)
+        return formatted_exprs
+
+    def edit_parm(self, data_type: hou.parmData, exprs: iter, append: bool = False):
+        """ insert or replace each self.parms value with expression, this method is used in conjunction with
+        self.parm_ready_string """
+        for parm, sel_exprs in zip(self.sorted_parms, exprs):
+            # besed on whether parm has keyframes getting string value is different
+            has_keyframes = parm.keyframes()
             if has_keyframes:
                 keyframe = has_keyframes[-1]
                 parm_val = keyframe.expression().strip()
-                if action == "append":
-                    keyframe.setExpression(" ".join((parm_val, selected_expression)))
+                if append:
+                    keyframe.setExpression("".join((parm_val, sel_exprs)))
                     parm.setKeyframe(keyframe)
                     continue
                 else:
-                    keyframe.setExpression(selected_expression)
+                    keyframe.setExpression(sel_exprs)
                     parm.setKeyframe(keyframe)
                     continue
             else:
@@ -273,11 +292,11 @@ class parmUtils:
                 else:
                     parm_val = parm.eval()
                     function_call = "setExpression"
-                if action == "append":
-                    getattr(parm, function_call)(" ".join((str(parm_val), selected_expression)))
+                if append:
+                    getattr(parm, function_call)("".join((str(parm_val), sel_exprs)))
                     continue
                 else:
-                    getattr(parm, function_call)(selected_expression)
+                    getattr(parm, function_call)(sel_exprs)
                     continue
 
     def paste_expression_from_json(self):
@@ -338,10 +357,18 @@ class parmUtils:
                     # replace expression with new geo_ref if needed
                     selected_expression = selected_expression.replace("geo_ref", str(new_geo_ref))
                     # append or set expression
-                    data_type = self.parms[0].parmTemplate().dataType()
-                    # dublicate selected_expression in a list 3 times
-                    selected_expressions = [selected_expression] * len(self.parms)
-                    self.edit_parm(action, data_type, optional_string, selected_expressions)
+                    # dublicate selected_expression in a list to match length of parms
+                    sel_expr_list = [[selected_expression]] * len(self.parms)
+                    if optional_string:
+                        # pad optional_string with spaces
+                        optional_string = f" {optional_string} "
+                    formated_sel_expr_list = self.parm_ready_string(self.data_type, sel_expr_list,
+                                                                    optional_prefix=optional_string)
+                    if action == "append":
+                        action = True
+                    else:
+                        action = False
+                    self.edit_parm(self.data_type, formated_sel_expr_list, append=action)
 
     def paste_cur_node_parm_ref(self):
         """if parm node is set, pop up node data select window with only path to current parm node"""
@@ -351,9 +378,9 @@ class parmUtils:
         if cur_parm_node:
             # check if alt key is pressed when menu item is clicked to append expression, else replace parm value
             if self.kwargs["altclick"]:
-                action = "append"
+                append = [True, " "]
             else:
-                action = "set"
+                append = [False, ""]
             # if menu is activated from parm label, fetch parmTuples, otherwise fetch parms
             if len(self.parms) > 1:
                 select_tuple = False
@@ -366,6 +393,7 @@ class parmUtils:
             def show_only_cur_node(node):
                 if node.path() == cur_parm_node:
                     return True
+
             new_ui = hou.ui.selectNodeData(include_object_transforms=False, include_geometry_bounding_boxes=False,
                                            include_geometry_attributes=False,
                                            width=400, expand_components=select_tuple, height=600,
@@ -381,7 +409,6 @@ class parmUtils:
                 selected_parm = [parm_selected]
             if selected_parm:
                 # get data type based on dataType
-                data_type = self._parm.dataType()
                 ch_ref_type = selected_parm[0].parmTemplate().dataType()
                 # get ch or chs based on parmData
                 if ch_ref_type == hou.parmData.String:
@@ -393,9 +420,10 @@ class parmUtils:
                 # make expression list for each parm in tuple
                 expression_list = []
                 for parm, cur_node_parm in zip(self.parms, selected_parm):
-                    expression_list.append(f"{ch_type}('{relative_path}/{cur_node_parm.name()}')")
+                    expression_list.append([f"{ch_type}('{relative_path}/{cur_node_parm.name()}')"])
                 # edit parms
-                self.edit_parm(action, data_type, "", expression_list)
+                edites_expression_list = self.parm_ready_string(ch_ref_type, expression_list, optional_prefix=append[1])
+                self.edit_parm(self.data_type, edites_expression_list, append=append[0])
 
     @staticmethod
     def clean_expression(expression: str):
@@ -445,14 +473,14 @@ class parmUtils:
 
     def valid_temp(self, invalid_parm_node: hou.Node) -> hou.ParmTemplate:
         # sets up parm that won't interfere with other parms already in parm node
-        base_parm = self._parm
+        base_parm = self.parm_template
         name = base_parm.name()
         parm_names = set(parmUtils.all_node_parms(invalid_parm_node))
         if name in parm_names:
             strip_parm = re.sub(r"[\d_]+$", "",
-                                self._parm.name(), flags=re.IGNORECASE)
-            for id in itertools.count(0, 1):
-                check = "".join((strip_parm, "_", str(id)))
+                                self.parm_template.name(), flags=re.IGNORECASE)
+            for count_id in itertools.count(0, 1):
+                check = "".join((strip_parm, "_", str(count_id)))
                 if check not in parm_names:
                     base_parm.setName(check)
                     break
@@ -465,45 +493,45 @@ class parmUtils:
 
     def create_relative_parm_reference(self, assign_to_definition: bool = True) -> None:
         # if parm node is set, creates parm on that node and creates expression that refrences newly created parm
-        if self.parm_controll_node:
+        if self.parm_control_node:
             if not self.parm.isMultiParmInstance():
                 parm_val_tuple = self.parm_tuple.eval()
                 # if node is an hda, give option to add parm to hda definition or spare parm
                 if self.hda_template_group:
                     if assign_to_definition:
-                        set_on = self.parm_controll_node.type().definition()
+                        set_on = self.parm_control_node.type().definition()
                     else:
-                        set_on = self.parm_controll_node
+                        set_on = self.parm_control_node
                 else:
-                    set_on = self.parm_controll_node
+                    set_on = self.parm_control_node
                 # create new folder that will store all the nodes form one node
                 folder_id = self.parm_node.path()
                 folder_id = folder_id.replace("/", "_").strip("_")
                 group = set_on.parmTemplateGroup()
                 if group.findFolder(folder_id):
                     found_folder = group.findFolder(folder_id)
-                    valid_temp = self.valid_temp(self.parm_controll_node)
+                    valid_temp = self.valid_temp(self.parm_control_node)
                     group.appendToFolder(
                         found_folder, valid_temp)
                     set_on.setParmTemplateGroup(
                         group, rename_conflicting_parms=True)
-                    self.parm_controll_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
+                    self.parm_control_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
                 else:
                     # if the user tries to write parm to hda definition on a node that's already
                     # referenced in a sapre parms, trow an exception to avoid confusion
                     if self.hda_template_group and assign_to_definition:
-                        if self.parm_controll_node.parmTemplateGroup().findFolder(folder_id):
+                        if self.parm_control_node.parmTemplateGroup().findFolder(folder_id):
                             raise HoudiniError(
                                 "Folder found in a spare parameters of the node")
                     # create a folder that will be named after the full path of the node,
                     # and put all parameters from that node in it
-                    valid_temp = self.valid_temp(self.parm_controll_node)
+                    valid_temp = self.valid_temp(self.parm_control_node)
                     new_folder = hou.FolderParmTemplate(
                         folder_id, folder_id, (valid_temp,), folder_type=hou.folderType.Simple)
                     group.append(new_folder)
                     set_on.setParmTemplateGroup(
                         group, rename_conflicting_parms=True)
-                    self.parm_controll_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
+                    self.parm_control_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
 
             else:
                 raise HoudiniError("Parm is a multiparm instance")
@@ -511,11 +539,11 @@ class parmUtils:
             # set up an expression for referencing new parm
             refeshed_folder = set_on.parmTemplateGroup().findFolder(folder_id)
             latest_temp = refeshed_folder.parmTemplates()[-1].name()
-            parm_to_ref = self.parm_controll_node.parmTuple(latest_temp)
+            parm_to_ref = self.parm_control_node.parmTuple(latest_temp)
 
             for to_set, to_fetch in zip(parm_to_ref, self.parm_tuple):
                 parm_name = to_set.name()
-                refrence_path = self.parm_node.relativePathTo(self.parm_controll_node)
+                refrence_path = self.parm_node.relativePathTo(self.parm_control_node)
                 parm_path = f"{self.channel_type}(\"{refrence_path}/{parm_name}\")"
                 # if parm is a ramp, create a parm without expression, the user will have to link them manually
                 if not isinstance(self.parm.parmTemplate(), hou.RampParmTemplate):
@@ -541,7 +569,7 @@ class parmUtils:
                     for parm in self.parm_tuple:
                         for parm_ref in parm.parmsReferencingThis():
                             parm_ref.deleteAllKeyframes()
-                    group.remove(self._parm.name())
+                    group.remove(self.parm_template.name())
                     self.parm_node.type().definition().setParmTemplateGroup(group)
             else:
                 raise HoudiniError("Can't delete folder")
@@ -561,66 +589,50 @@ class parmUtils:
             for build_in in build_in_list_vals:
                 attrib_val = getattr(work_items, build_in)
                 attrib_expression = f"P@pdg_{build_in}"
-                pdg_dict[f"build_in_{build_in}"] = [attrib_val, attrib_expression]
+                pdg_dict[f"build_in_{build_in}"] = [attrib_val, attrib_expression, 1]
             for build_in in build_in_list_expression:
                 expression = f"P@pdg_{build_in}"
                 # to avoid possible long strings of paths in fromList window, don't show its current value,
                 # only expression
                 attrib_val, attrib_expression = expression, expression
-                pdg_dict[f"build_in_{build_in}"] = [attrib_val, attrib_expression]
+                pdg_dict[f"build_in_{build_in}"] = [attrib_val, attrib_expression, 1]
             # get any non-built-in attributes of the work item
             pdg_attribs = work_items.data.allDataMap
             for pdg_attrib in pdg_attribs:
                 attrib_val = pdg_attribs[pdg_attrib]
                 attrib_expression = f"P@{pdg_attrib}"
-                pdg_dict[f"{pdg_attrib}"] = [attrib_val, attrib_expression]
+                attrib_size = len(attrib_val)
+                pdg_dict[f"{pdg_attrib}"] = [attrib_val, attrib_expression, attrib_size]
             # convert dictionary to list, so it can display attribute name and its current value in a single line
             menu_selection = [f"{attrib}: {pdg_dict[attrib][0]}" for attrib in pdg_dict]
             # pop up listFrom window and allow the user to select multiple attributes that will be strung together
             user_selection = hou.ui.selectFromList(menu_selection, exclusive=False)
             if user_selection:
                 selected_items = []
+                edited_selected_items = []
                 for selection_index in user_selection:
                     key = menu_selection[selection_index].split(":")[0]
-                    selected_items.append(pdg_dict[key][1])
-                for index, parm in enumerate(self.parms):
-                    if len(self.parms) == 1:
-                        index = f""
-                    else:
-                        index = f".{index}"
-                    # two different expression formats to append depending on parm type and if it's keyframed
-                    string_expression = "_".join([f"`{entry}{index}`" for entry in selected_items])
-                    keyframe_expression = "_".join([f"{entry}{index}" for entry in selected_items])
-                    # if parm is keyframed create a new keyframe at the current frame
-                    if parm.keyframes():
-                        keyframe = parm.keyframesBefore(hou.frame())[-1]
-                        old_parm_val = keyframe.expression()
-                        keyframe.setFrame(hou.frame())
-                        if replace:
-                            new_parm_val = keyframe_expression
+                    selected_items.append((pdg_dict[key][1], pdg_dict[key][2]))
+                for index, parm in enumerate(self.sorted_parms):
+                    element_selected_items = []
+                    for sel_expr, attrib_len in selected_items:
+                        if attrib_len == 1:
+                            attrib_elem = f""
                         else:
-                            new_parm_val = "".join((old_parm_val, keyframe_expression))
-                        keyframe.setExpression(new_parm_val)
-                        parm.setKeyframe(keyframe)
-                        continue
-                    if self.holds_string:
-                        old_parm_val = parm.unexpandedString()
-                        if replace:
-                            parm.set(string_expression)
-                        else:
-                            new_parm_val = "".join((old_parm_val, string_expression))
-                            parm.set(new_parm_val)
-                        continue
-                    else:
-                        old_parm_val = parm.eval()
-                        if replace:
-                            parm.setExpression(keyframe_expression)
-                        else:
-                            if old_parm_val:
-                                new_parm_val = "".join((old_parm_val, keyframe_expression))
+                            if attrib_len < index + 1:
+                                attrib_elem = f".{attrib_len - 1}"
                             else:
-                                new_parm_val = keyframe_expression
-                            parm.setExpression(new_parm_val)
+                                attrib_elem = f".{index}"
+                        sel_item = f"{sel_expr}{attrib_elem}"
+                        element_selected_items.append(sel_item)
+                    edited_selected_items.append(element_selected_items)
+                append_to_parm = self.kwargs["altclick"]
+                underscore_sep = self.kwargs["ctrlclick"]
+                # set seperator and optional prefix for expression
+                separator = "_" if underscore_sep else ""
+                new_expression_list = self.parm_ready_string(self.data_type, edited_selected_items,
+                                                             joint_with=separator)
+                self.edit_parm(self.data_type, new_expression_list, append_to_parm)
 
     def get_pdg_work_item_tags(self, input_outup_property: str, exp_func_name: str):
         """ diplay list of input or output files of work items with their tags,
@@ -806,8 +818,8 @@ class MultiparmUtils(parmUtils):
         group = node.parmTemplateGroup()
         invalid_parms = MultiparmUtils.all_node_parms(node)
         base_spare = None
-        for id in itertools.count(0):
-            base_spare = f"spare_input{id}"
+        for count_id in itertools.count(0):
+            base_spare = f"spare_input{count_id}"
             if base_spare not in invalid_parms:
                 break
         spare_parm = hou.StringParmTemplate(
