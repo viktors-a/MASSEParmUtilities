@@ -4,6 +4,26 @@
         <subMenu id="MASSE_OP_parm_menu">
         <label>MASSE tools</label>
         <insertAfter>opmenu.parms_and_channels_menu</insertAfter>
+
+<!-- ADD NODES TO OBJECT MERGE -->
+            <scriptItem id = "MASSE_object_merge_sel_nodes">
+                <label>Object merge selected nodes</label>
+                <expression><![CDATA[
+node = kwargs["node"]
+selected_nodes = [sel_node for sel_node in hou.selectedNodes() if sel_node != node]
+if node.type().name() == "object_merge" and len(selected_nodes) > 0:
+    return True
+return False
+]]>
+                </expression>
+                <scriptCode><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+MASSE_parm_utils.add_nodes_to_object_merge(kwargs)
+]]>             </scriptCode>
+            </scriptItem>
+
+
+
 <!-- PARM MENUS -->
 <!-- PARM SET ENV -->
             <scriptItem id="MASSE_putenv">

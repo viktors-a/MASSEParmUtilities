@@ -40,3 +40,11 @@ GET PDG ATTRIBUTES:
     2. alt click on menu will append selected attributes to parm, else it will replace current parm value
     3. default behavior is to joint all attribute expressions without spaces, if ctrl is pressed when menu item is selected
     tool will add _ between attribute, this is done to make it easier to use attributes in dynamic file names/paths when rendering with pdg
+
+OBJECT MERGE SELECTED NODES:
+
+    1. select nodes you want to object merge
+    2. right click on object merge node and select "MASSE tools -> Object merge selected nodes"
+    3. menu will only appear if thare are multiple selected nodes and menu was called on object merge node
+    4. Default behavior that relative path will be used, you can alt-click for absolute path, ctrl-click 
+    to remove any entries in object merge node before adding selected nodes

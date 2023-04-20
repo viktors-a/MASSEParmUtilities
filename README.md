@@ -59,3 +59,7 @@ To install:
 #### Get pdg input/output tags
 
 ![](help/showcase/pdg_get_input_output.gif)
+
+#### Object merge selected nodes
+
+![](help/showcase/object_merge_selected.gif)

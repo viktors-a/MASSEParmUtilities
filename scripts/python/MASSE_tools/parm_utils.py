@@ -897,3 +897,34 @@ class MultiparmUtils(parmUtils):
                 full_expr = f"{self.channel_type}(strcat(\"{path_to_multi_folder}/\", {parm_str}))"
                 parm.setExpression(
                     full_expr, language=hou.exprLanguage.Hscript)
+
+
+def add_nodes_to_object_merge(kwargs):
+    """Adds selected nodes to object merge node, either as relative or absolute path based on alt click,
+     ctrlclick will clear any existing object merges"""
+    alt_pressed = kwargs["altclick"]
+    ctrl_pressed = kwargs["ctrlclick"]
+    menu_node = kwargs["node"]
+    menu_node_type = menu_node.type().name()
+    if menu_node_type == "object_merge":
+        selected_nodes = hou.selectedNodes()
+        nodes_to_add = [node for node in selected_nodes if node != menu_node]
+        if nodes_to_add:
+            if alt_pressed:
+                node_path_ref = [node.path() for node in nodes_to_add]
+            else:
+                node_path_ref = [menu_node.relativePathTo(node) for node in nodes_to_add]
+            multiparm_counter = menu_node.parm("numobj")
+            # get all object references
+            referenced_nodes = []
+            for ref_parm in range(multiparm_counter.evalAsInt()):
+                parm_name = f"objpath{str(ref_parm+1)}"
+                referenced_nodes.append(menu_node.parm(parm_name).evalAsString())
+            if ctrl_pressed:
+                multiparm_counter.set(0)
+            for node_path in node_path_ref:
+                if node_path not in referenced_nodes:
+                    current_mp_index = multiparm_counter.evalAsInt()
+                    menu_node.parm("numobj").insertMultiParmInstance(current_mp_index)
+                    parm_name = f"objpath{str(current_mp_index+1)}"
+                    menu_node.parm(parm_name).set(node_path)
