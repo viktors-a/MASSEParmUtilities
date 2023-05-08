@@ -1,0 +1,21 @@
+#
+#       @file       VEXpressions.txt
+#       @author     Viktors Anfimovs
+#
+#       @since      08/05/2023
+#
+#       @brief      Varions VEXpression presets for nodes.
+#
+#
+
+attribwrangle/snippet
+    MASSE Remove points from matching ID
+    int pt_ID = point(0, "ID", @ptnum);
+    int in_del_group = inpointgroup(0, "to_del_pts", @ptnum);
+    if (in_del_group == 1) {
+        string all_id_pts = "@ID="+itoa(pt_ID);
+        int id_expr[] =expandpointgroup(0, all_id_pts);
+        foreach (int pt_to_del; id_expr){
+            removepoint(0, pt_to_del);
+        }
+    }

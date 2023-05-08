@@ -245,6 +245,24 @@ class parmUtils:
         except (FileNotFoundError, KeyError):
             return menu_items
 
+    @staticmethod
+    def get_all_type_attrib_names(types: iter, geometry, data_type: Iterable[hou.attribData], size: int = -1) -> list:
+        """"gets all attribs of a certain types, with a certain size, if size is -1, it will return all attribs,
+        usef for attrubute selection menus in parameter interface"""
+        attrib_names = []
+        for attrib_type in types:
+            attrs = getattr(geometry, f"{attrib_type}Attribs")()
+            for a in attrs:
+                attr_data_type = a.dataType()
+                if size == -1 and attr_data_type in data_type:
+                    attrib_names.extend([a.name(), a.name()])
+                else:
+                    if a.size() == size and attr_data_type in data_type:
+                        menu_name = a.name()
+                        menu_label = f"[{attr_data_type.name()}] {menu_name}"
+                        attrib_names.extend([a.name(), menu_label])
+        return attrib_names
+
     def parm_ready_string(self, data_type: hou.parmData, exprs_to_format: iter, optional_prefix="",
                           joint_with: str = " ") -> list:
         """format strings for parm expressions apropiately based on data type and keyframes expr_to_format should be
