@@ -5,6 +5,24 @@
         <label>MASSE tools</label>
         <insertAfter>opmenu.parms_and_channels_menu</insertAfter>
 
+
+<!-- PARM JUMP TO -->
+            <scriptItem id="MASSE_split_by_unique_string">
+            <label>Split by unique attibute string</label>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    from importlib import reload
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    reload(MASSE_parm_utils)
+    MASSE_parm_utils.spilt_by_unique_attrib(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
 <!-- ADD NODES TO OBJECT MERGE -->
             <scriptItem id = "MASSE_object_merge_sel_nodes">
                 <label>Object merge selected nodes</label>

@@ -936,7 +936,7 @@ def add_nodes_to_object_merge(kwargs):
             # get all object references
             referenced_nodes = []
             for ref_parm in range(multiparm_counter.evalAsInt()):
-                parm_name = f"objpath{str(ref_parm+1)}"
+                parm_name = f"objpath{str(ref_parm + 1)}"
                 referenced_nodes.append(menu_node.parm(parm_name).evalAsString())
             if ctrl_pressed:
                 multiparm_counter.set(0)
@@ -944,5 +944,47 @@ def add_nodes_to_object_merge(kwargs):
                 if node_path not in referenced_nodes:
                     current_mp_index = multiparm_counter.evalAsInt()
                     menu_node.parm("numobj").insertMultiParmInstance(current_mp_index)
-                    parm_name = f"objpath{str(current_mp_index+1)}"
+                    parm_name = f"objpath{str(current_mp_index + 1)}"
                     menu_node.parm(parm_name).set(node_path)
+
+
+def spilt_by_unique_attrib(kwargs):
+    """Create blast node for every unique string in a string attrib, and blast geometry by that string"""
+    node = kwargs["node"]
+    geo = node.geometry()
+    # get point and prim attribs
+    point_attribs = (geo.pointAttribs(), 3)
+    prim_attribs = (geo.primAttribs(), 4)
+    valid_attribs = []
+    # loop through both tuples
+    for attrib_tuple, menu_index in (point_attribs, prim_attribs):
+        for attrib in attrib_tuple:
+            attrib_size = attrib.size()
+            attrib_data_type = attrib.dataType()
+            # check if attrib is string type and size is 1
+            if attrib_data_type == hou.attribData.String and attrib_size == 1:
+                attrib_name = attrib.name()
+                unique_strs = attrib.strings()
+                valid_attribs.append((attrib_name, menu_index, unique_strs))
+    if valid_attribs:
+        menu_entries = [f"{entry[0]} - {len(entry[2])} Unique" for entry in valid_attribs]
+        selection = hou.ui.selectFromList(menu_entries, exclusive=True, title="Select Attribute to Split By")
+        if selection:
+            selected_menu_index = valid_attribs[selection[0]]
+            attrib_name, menu_index, unique_strs = selected_menu_index
+            for unique_str in unique_strs:
+                # remove invalid characters from string
+                node_name = re.sub(r"[^a-zA-Z0-9_]", "_", unique_str)
+                # try to det node with same name
+                try:
+                    blast_node = node.parent().createNode("blast", node_name)
+                except hou.OperationFailed:
+                    blast_node = node.parent().createNode("blast")
+                blast_expr = f"@{attrib_name}={unique_str}"
+                blast_node.parm("group").set(blast_expr)
+                blast_node.parm("grouptype").set(menu_index)
+                # make sure negate is on
+                blast_node.parm("negate").set(1)
+                # set input to blast node
+                blast_node.setInput(0, node)
+                blast_node.moveToGoodPosition()

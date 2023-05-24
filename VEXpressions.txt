@@ -19,3 +19,13 @@ attribwrangle/snippet
             removepoint(0, pt_to_del);
         }
     }
+
+attribwrangle/snippet
+    MASSE move to origin
+    matrix xform = ident();
+    vector center = getbbox_center(0);
+
+    center *= -1;
+    translate(xform,center);
+
+    v@P *= xform;
