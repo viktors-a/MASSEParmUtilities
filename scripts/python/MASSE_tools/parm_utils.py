@@ -1,5 +1,6 @@
 from typing import Iterable, Optional, Tuple, Generator
 from collections import defaultdict
+from . import pyperclip
 import itertools
 import json
 import pdg
@@ -988,3 +989,60 @@ def spilt_by_unique_attrib(kwargs):
                 # set input to blast node
                 blast_node.setInput(0, node)
                 blast_node.moveToGoodPosition()
+
+
+def paste_unreal_reference(kwargs, attrb_class, attrib_name):
+    """Used for pasting unreal references from clipboard to selected nodes"""
+    # menu node
+    nodes = [kwargs["node"]]
+    # get selected nodes
+    selected_nodes = hou.selectedNodes()
+    [nodes.insert(0, selected_node) for selected_node in selected_nodes if selected_node not in nodes]
+    clipboard = pyperclip.paste()
+    # check if clipboard is empty or contains only spaces
+    if not clipboard or clipboard.isspace():
+        return
+    # split clipboard by new line
+    clipboard = clipboard.split("\n")
+    selected_nodes_len = len(nodes)
+    copied_items_len = len(clipboard)
+    # if len of clipboard is bigger than selected nodes, make them equal
+    if copied_items_len > selected_nodes_len:
+        clipboard = clipboard[:len(nodes)]
+    # if len of selected nodes is bigger than clipboard, extend copied items to match with the biggest equal len
+    elif selected_nodes_len > copied_items_len:
+        clipboard.extend([clipboard[-1] for _ in range(selected_nodes_len - copied_items_len)])
+    # loop through selected nodes and clipboard and create attribcreate node
+    for node, rel_ref in zip(nodes, clipboard):
+        # check if node is attribcreate and has same attrib name, if so, set parms and continue, else create new node
+        if node.type() == "attribcreate" and node.parm("name1") == attrib_name:
+            node.setParms({"class1": attrb_class, "string1": rel_ref})
+            continue
+        else:
+            # get nodes connecceted to output 0
+            output_nodes = node.outputConnections()
+            # try to extract valid name of the copied reference
+            node_name = rel_ref.split(".")[-1]
+            node_name = re.sub(r"[^a-zA-Z0-9_]", "_", node_name)
+            # remove undersocres from start and end of string
+            node_name = node_name.strip("_")
+            node_parent = node.parent()
+            try:
+                # create instance node
+                create_attrib = node_parent.createNode("attribcreate", node_name)
+            except hou.OperationFailed:
+                create_attrib = node_parent.createNode("attribcreate")
+            # set parms
+            create_attrib.setParms({"class1": attrb_class, "type1": "index", "name1": attrib_name, "string1": rel_ref})
+            # set input
+            create_attrib.setInput(0, node)
+            # move to good position
+            node_pos = node.position()
+            node_pos[1] += -1
+            create_attrib.setPosition(node_pos)
+            # set attrib node output to output nodes
+            if output_nodes:
+                # select first output node
+                output_node = output_nodes[0].outputNode()
+                # set attrib node output to output node
+                output_node.setInput(0, create_attrib)

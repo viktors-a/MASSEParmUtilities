@@ -5,16 +5,43 @@
         <label>MASSE tools</label>
         <insertAfter>opmenu.parms_and_channels_menu</insertAfter>
 
+                     <!-- PASTE UNREAL material -->
+            <scriptItem id="MASSE_paste_unreal_material">
+            <label>Paste unreal material</label>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.paste_unreal_reference(kwargs,"primitive", "unreal_material")
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
 
+
+            <!-- PASTE UNREAL INSTANCE -->
+            <scriptItem id="MASSE_paste_unreal_instance">
+            <label>Paste unreal instance</label>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.paste_unreal_reference(kwargs,"point", "unreal_instance")
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
 <!-- PARM JUMP TO -->
             <scriptItem id="MASSE_split_by_unique_string">
             <label>Split by unique attibute string</label>
                 <scriptCode>
 <![CDATA[
 def runLater():
-    from importlib import reload
     from MASSE_tools import parm_utils as MASSE_parm_utils
-    reload(MASSE_parm_utils)
     MASSE_parm_utils.spilt_by_unique_attrib(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
