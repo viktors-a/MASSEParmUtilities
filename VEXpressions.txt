@@ -29,3 +29,14 @@ attribwrangle/snippet
     translate(xform,center);
 
     v@P *= xform;
+
+attribwrangle/snippet
+    MASSE Shrink two point curve
+    vector pos_1 = point(0,"P",0);
+    vector pos_2 = point(0,"P",1);
+
+    vector dir_1 = normalize(pos_1-pos_2);
+    vector dir_2 = normalize(pos_2-pos_1);
+
+    setpointattrib(0, "P", 0, pos_1-=dir_1*chf("offset"));
+    setpointattrib(0, "P", 1, pos_2-=dir_2*chf("offset"));
