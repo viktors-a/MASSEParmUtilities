@@ -35,7 +35,6 @@ attribwrangle/snippet
     for (int prim = 0; prim < @numprim; ++prim){
         int prim_pts[] = primpoints(0, prim);
         if (len(prim_pts) == 2) {
-            printf("%d\n", prim);
             vector pos_1 = point(0,"P", prim_pts[0]);
             vector pos_2 = point(0,"P", prim_pts[1]);
 
