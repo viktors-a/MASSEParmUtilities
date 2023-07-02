@@ -183,6 +183,7 @@ hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
 
+<!-- RENAME SELECTED NODES -->
 
             <scriptItem id = "MASSE_rename_selected_nodes">
                 <label>Rename selected nodes</label>
@@ -194,6 +195,20 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
+
+<!-- COLOR NODES -->
+
+            <scriptItem id = "MASSE_color_nodes">
+                <label>Color selected nodes</label>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.color_nodes()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+            </scriptItem>
+
 <!-- SET WEDGE NODE  -->
 
             <scriptItem id = "MASSE_set_wedge">

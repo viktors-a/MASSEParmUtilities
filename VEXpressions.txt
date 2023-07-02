@@ -46,3 +46,22 @@ attribwrangle/snippet
             setpointattrib(0, "P", prim_pts[1], pos_2+=offset_dir_2*chf("offset"));
         }
     }
+
+attribwrangle/snippet
+    MASSE delete start and end points on curve
+    int sub_amount = chi("subtract");
+    if (sub_amount>0) {
+        int prim_pts[] =primpoints(0, @primnum);
+        int to_del[];
+        // get start pts
+        int start_pts[] =prim_pts[0:sub_amount];
+        //get end pts
+        int end_pts[] =prim_pts[-sub_amount:];
+        append(to_del, start_pts);
+        append(to_del, end_pts);
+
+        foreach ( int pt; to_del){
+        removepoint(0, pt);
+    }
+
+    }

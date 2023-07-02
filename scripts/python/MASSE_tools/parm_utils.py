@@ -1046,3 +1046,19 @@ def paste_unreal_reference(kwargs, attrb_class, attrib_name):
                 output_node = output_nodes[0].outputNode()
                 # set attrib node output to output node
                 output_node.setInput(0, create_attrib)
+
+def color_nodes():
+    nodes = hou.selectedNodes()
+    for node in nodes:
+        parms = node.parms()
+        keyframed_parms = [parm.name for parm in parms if parm.keyframes()]
+        # delete node if in its name if it contains "delete"
+        # set up colors
+        keyframed_color = hou.Color((0.475, 0.812, 0.204))
+        delete_color = hou.Color((0.98, 0.275, 0.275))
+        if keyframed_parms:
+            node.setColor(keyframed_color)
+        delete_riggers = ["delete", "remove", "blast"]
+        # check if node name contains delete_riggers
+        if any(rigger in node.name().lower() for rigger in delete_riggers):
+            node.setColor(delete_color)
