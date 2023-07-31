@@ -321,25 +321,26 @@ class parmUtils:
     def paste_expression_from_json(self):
         """ implementation of expression pasting for dynamic menu items based on json file"""
         try:
-            selected_expression = self.kwargs["selectedtoken"]
+            sel_exp = self.kwargs["selectedtoken"]
         except KeyError:
-            selected_expression = None
+            sel_exp = None
         # pop up select menu if found geo_ref in expression
-        if selected_expression:
+        if sel_exp:
             # split string with regex to get all entries between `
             expr_sep = r"'(.*?)'"
-            expression_list = re.findall(expr_sep, selected_expression)
+            expression_list = re.findall(expr_sep, sel_exp)
             select_ui = hou.ui.selectFromList(expression_list, exclusive=True)
+
             # only proceed if user selected something
             if select_ui:
                 # make sure only one expression will be selected
-                selected_expression = expression_list[select_ui[0]]
+                sel_exp = expression_list[select_ui[0]]
                 # default input_dict alwyas allows to replace geo_ref to 0
                 input_dict = {"Cancel": 0, "Append": [0, "append"], "Set": [0, "set"]}
                 # find 'geo_ref' found in expression process further
-                geo_ref = selected_expression.find("geo_ref")
+                geo_ref = sel_exp.find("geo_ref")
                 if geo_ref != -1:
-                    input_dict = {"Cancel": 0, "Append[0]": [0, "append"], "Set[0]": [0, "set"]}
+                    input_dict = {"Cancel": [None, None], "Append[0]": [0, "append"], "Set[0]": [0, "set"]}
                     # get possible spare inputs, add them to input_dict
                     spare_inputs = [parm for parm in self.parm_node.spareParms()
                                     if re.match(r"spare_input\d+", parm.name())]
@@ -352,42 +353,34 @@ class parmUtils:
                             input_dict[append_key] = [geo_ref, "append"]
                             set_key = f"Set[{geo_ref}]"
                             input_dict[set_key] = [geo_ref, "set"]
+
                 # create expression modifier ui
-                message = "Select geometry reference for expression\n" \
-                          "formats: [EDIT EXPRESSION] [OPTIONAL PREFIX(if append)]\n" \
-                          "or OPTIONAL PREFIX(if append)"
+                message = "[EDIT EXPRESSION] {OPTIONAL PREFIX}"
                 key_list = list(input_dict.keys())
-                editable_expression = f"[{selected_expression}] []"
-                input_select_ui = hou.ui.readInput(message, buttons=key_list, initial_contents=editable_expression)
-                # select input_dict based on button pressed
-                selected_button, optional_string = input_select_ui
-                if selected_button > 0:
-                    # get all enries between [] in optional_string
-                    editable_expression = re.findall(r"\[(.*?)]", optional_string)
-                    # if two entries are found, update selected_expression and optional_string otherwise
-                    # optional_string will act as prefix if append button pressed
-                    if len(editable_expression) == 2:
-                        selected_expression, optional_string = editable_expression
-                    if len(editable_expression) == 1:
-                        selected_expression = editable_expression[0]
-                        optional_string = ""
-                    input_dict_key = key_list[selected_button]
-                    new_geo_ref, action = input_dict[input_dict_key]
-                    # replace expression with new geo_ref if needed
-                    selected_expression = selected_expression.replace("geo_ref", str(new_geo_ref))
-                    # append or set expression
-                    # dublicate selected_expression in a list to match length of parms
-                    sel_expr_list = [[selected_expression]] * len(self.parms)
-                    if optional_string:
-                        # pad optional_string with spaces
-                        optional_string = f" {optional_string} "
-                    formated_sel_expr_list = self.parm_ready_string(self.data_type, sel_expr_list,
-                                                                    optional_prefix=optional_string)
-                    if action == "append":
-                        action = True
+                input_select_ui = hou.ui.readInput(message, buttons=key_list, initial_contents=f"{sel_exp} {{}}")
+                button_index, sel_exp = input_select_ui
+                geo_ref, opperation  = input_dict[key_list[button_index]]
+
+                if opperation != "Cancel":
+                    exp_list = []
+                    # split string
+                    component_find = re.findall(r"(\[.*?])", sel_exp)
+                    append_find = re.findall(r"({.*?})", sel_exp)
+                    sel_exp = sel_exp.replace(append_find[0],"").strip()
+
+                    sel_exp=sel_exp.replace("geo_ref", str(geo_ref))
+
+                    if component_find:
+                        rpl_str = component_find[0]
+                        components_list = rpl_str[1:-1].split(" ")
+                        for component in components_list:
+                            sel_exp_copy = sel_exp
+                            exp_list.append([sel_exp_copy.replace(rpl_str, component)])
                     else:
-                        action = False
-                    self.edit_parm(self.data_type, formated_sel_expr_list, append=action)
+                        exp_list.append([sel_exp])
+                    formated_sel_expr_list = self.parm_ready_string(self.data_type, exp_list,
+                                                                    optional_prefix=append_find[0][1:-1])
+                    self.edit_parm(self.data_type, formated_sel_expr_list, append=opperation == "append")
 
     def paste_cur_node_parm_ref(self):
         """if parm node is set, pop up node data select window with only path to current parm node"""

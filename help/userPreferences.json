@@ -4,20 +4,39 @@
                 "editor_name_1": "path_to_executable",
                 "editor_name_2": "path_to_executable"
               },
-      "parmExpressions":
-            {
-              "bbox": ["bbox(geo_ref, D_XMIN)",
-                "bbox(geo_ref, D_XMAX)",
-                "bbox(geo_ref, D_YMIN)",
-                "bbox(geo_ref, D_YMAX)",
-                "bbox(geo_ref, D_ZMIN)",
-                "bbox(geo_ref, D_ZMAX)",
-                "bbox(geo_ref, D_XSIZE)"
-              , "bbox(geo_ref, D_YSIZE)",
-                "bbox(geo_ref, D_ZSIZE)"],
-              "centroid": ["centroid(geo_ref, D_X)",
-                "centroid(geo_ref, D_Y)",
-                "centroid(geo_ref, D_Z)"]
-            }
-
+    "parmExpressions":
+          {
+            "bbox": ["bbox(geo_ref, D_XMIN)",
+              "bbox(geo_ref, D_XMAX)",
+              "bbox(geo_ref, D_YMIN)",
+              "bbox(geo_ref, D_YMAX)",
+              "bbox(geo_ref, D_ZMIN)",
+              "bbox(geo_ref, D_ZMAX)",
+              "bbox(geo_ref, D_XSIZE)"
+            , "bbox(geo_ref, D_YSIZE)",
+              "bbox(geo_ref, D_ZSIZE)",
+            "bbox(geo_ref, [D_XSIZE D_YSIZE D_ZSIZE])"],
+            "centroid": ["centroid(geo_ref, D_X)",
+              "centroid(geo_ref, D_Y)",
+              "centroid(geo_ref, D_Z)",
+              "centroid(geo_ref, [D_X D_Y D_Z])"],
+            "geo component ": ["npoints(geo_ref)",
+              "nprims(geo_ref)",
+              "nvertices(geo_ref)",
+              "npointsgroup(geo_ref, group_name)",
+              "nprimsgroup(geo_ref, group_name)",
+              "nverticesgroup(geo_ref, group_name)"],
+            "geo attibs ": ["point(geo_ref, 0, \"attrib\", 0)",
+              "vertex(geo_ref, 0, 0, \"attrib\", 0)",
+              "prim(geo_ref, 0, \"attrib\", [0 1 2])",
+              "detail(geo_ref, \"attrib\", 0)"],
+            "OPs ": ["opinput(\".\", 0)"],
+            "conditionals ": [
+              "if(expression, true_value, false_value)",
+              "strcasecmp(s1, s2)"
+            ],
+            "math": ["abs(number)",
+            "clamp(value, min, max)"],
+            "CUSOMTOM ": ["rand(detail(geo_ref, \"iteration\", 0))"]
+          }
 }

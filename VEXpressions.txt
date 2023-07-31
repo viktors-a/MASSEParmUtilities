@@ -63,5 +63,13 @@ attribwrangle/snippet
         foreach ( int pt; to_del){
         removepoint(0, pt);
     }
-
     }
+
+attribwrangle/snippet
+    MASSE transfer prim N to nearest point
+    //set the normal of a point to the normal of the nearest primitive of input 1
+    int near_prim;
+    vector near_uvw;
+    float near_dist = xyzdist(1, v@P, near_prim, near_uvw);
+    v@N = prim_normal(1, near_prim, near_uvw);
+

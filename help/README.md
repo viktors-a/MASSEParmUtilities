@@ -24,7 +24,8 @@ ADD YOUR OWN EXPRESSONS TO PASTE EXPRESSION MENU:
     - Based on whether "geo_ref" in found in expression, menu after expression selection will be different.
     - If spare input parms are found on node, they will be added to menu as buttons and if selected it
     will replace "geo_ref" on expression.
-
+    -NEW You can now differentiate parts of the pasted expression based on a  square brackets, for example -
+    "centroid(geo_ref, [D_X D_Y D_Z])" - will create 3 different expressions and paste them in order.
 
 REFERENCE CURRENT PARM NODE:
 
