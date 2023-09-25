@@ -73,3 +73,12 @@ attribwrangle/snippet
     float near_dist = xyzdist(1, v@P, near_prim, near_uvw);
     v@N = prim_normal(1, near_prim, near_uvw);
 
+
+attribwrangle/snippet
+    MASSE get mesh name from unreal_input_mesh_name attribute
+    // Optional remove string after name has been extracted
+    string additional_remove = chs("additional_remove");
+    string base_name = re_find(r"(?<=\.)\w+(?=$)", s@unreal_input_mesh_name);
+    base_name = re_replace(additional_remove,"",base_name);
+    //set attrib
+    s@name = base_name;
