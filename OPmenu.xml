@@ -38,6 +38,15 @@ hdefereval.executeDeferred(runLater)
 <!-- PARM JUMP TO -->
             <scriptItem id="MASSE_split_by_unique_string">
             <label>Split by unique attibute string</label>
+                <expression><![CDATA[
+selected_nodes = hou.selectedNodes()
+for node in selected_nodes:
+    if not isinstance(node, hou.SopNode):
+        return False
+else:
+    return True
+]]>
+                </expression>
                 <scriptCode>
 <![CDATA[
 def runLater():
@@ -49,7 +58,40 @@ hdefereval.executeDeferred(runLater)
                 </scriptCode>
             </scriptItem>
 
+
+
 <separatorItem/>
+
+<!-- PARM JUMP TO -->
+            <scriptItem id="MASSE_attrib_based_on_node_name">
+            <label>Attribute from node name</label>
+                <expression><![CDATA[
+selected_nodes = hou.selectedNodes()
+for node in selected_nodes:
+    if not isinstance(node, hou.SopNode):
+        return False
+else:
+    return True
+]]>
+                </expression>
+                <scriptCode>
+<![CDATA[
+def runLater():
+
+    from importlib import reload
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    reload(MASSE_parm_utils)
+    MASSE_parm_utils.attrib_from_node_name(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
+
+
+
 <!-- ADD NODES TO OBJECT MERGE -->
             <scriptItem id = "MASSE_object_merge_sel_nodes">
                 <label>Object merge selected nodes</label>
