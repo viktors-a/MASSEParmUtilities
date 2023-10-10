@@ -49,3 +49,7 @@ OBJECT MERGE SELECTED NODES:
     3. menu will only appear if thare are multiple selected nodes and menu was called on object merge node
     4. Default behavior that relative path will be used, you can alt-click for absolute path, ctrl-click 
     to remove any entries in object merge node before adding selected nodes
+
+PROP SCATTERING HDAs GUIDE:
+
+https://youtu.be/T66ETtaQAKA
