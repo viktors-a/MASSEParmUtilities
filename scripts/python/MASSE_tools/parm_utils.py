@@ -974,7 +974,7 @@ def spilt_by_unique_attrib(kwargs):
                     blast_node = node.parent().createNode("blast", node_name)
                 except hou.OperationFailed:
                     blast_node = node.parent().createNode("blast")
-                blast_expr = f"@{attrib_name}={unique_str}"
+                blast_expr = f"@{attrib_name}=\"{unique_str}\""
                 blast_node.parm("group").set(blast_expr)
                 blast_node.parm("grouptype").set(menu_index)
                 # make sure negate is on
