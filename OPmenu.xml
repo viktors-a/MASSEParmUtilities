@@ -5,6 +5,36 @@
         <label>MASSE tools</label>
         <insertAfter>opmenu.parms_and_channels_menu</insertAfter>
 
+                     <!-- ADD TO NODE REFERENCE -->
+<!--###############################################################################################################-->
+            <scriptItem id="MASSE_add_node_to_project_references">
+            <label>Add node to project references</label>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.NodeReferenceTools(kwargs).add_to_session_references()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+
+            <!-- REMOVE ITEMS FROM REFERENCES -->
+<!--###############################################################################################################-->
+            <scriptItem id="MASSE_remove_nodes_from_references">
+            <label>Remove nodes from references</label>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.NodeReferenceTools(kwargs).remove_from_session_references()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+<separatorItem/>
                      <!-- PASTE UNREAL material -->
             <scriptItem id="MASSE_paste_unreal_material">
             <label>Paste unreal material</label>
@@ -78,9 +108,7 @@ else:
 <![CDATA[
 def runLater():
 
-    from importlib import reload
     from MASSE_tools import parm_utils as MASSE_parm_utils
-    reload(MASSE_parm_utils)
     MASSE_parm_utils.attrib_from_node_name(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
@@ -308,5 +336,60 @@ del os.environ["EDITOR"]
                 </scriptMenuStripDynamic>
             </subMenu>
         </subMenu>
+
+        <!--       CREATE REFERENCE NODE -->
+<!--###############################################################################################################-->
+    <subMenu id="MASSE_create_reference_node">
+        <insertAfter>MASSE_OP_parm_menu</insertAfter>
+        <label>MASSE create reference node</label>
+<expression><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+MASSE_parm_utils.NodeReferenceTools.menu_update_session_dict()
+return MASSE_parm_utils.NodeReferenceTools.has_reference_dict()
+]]>
+</expression>
+        <scriptMenuStripDynamic id="MASSE_node_reference">
+            <contentsScriptCode><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+menu_items = [];
+return MASSE_parm_utils.NodeReferenceTools.populate_menu()
+            ]]></contentsScriptCode>
+            <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    node_path = kwargs["selectedtoken"]
+    MASSE_parm_utils.NodeReferenceTools(kwargs).create_reference_node(node_path)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+            ]]></scriptCode>
+    </scriptMenuStripDynamic>
+</subMenu>
+
+        <!--       JUMP TO REFERENCE NODE -->
+<!--###############################################################################################################-->
+    <subMenu id="MASSE_jump_to_reference_node">
+        <insertAfter>MASSE_create_reference_node</insertAfter>
+        <label>MASSE jump to reference node</label>
+                        <expression><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+return MASSE_parm_utils.NodeReferenceTools.has_reference_dict()
+]]>
+                </expression>
+        <scriptMenuStripDynamic id="MASSE_jump_to_node">
+            <contentsScriptCode><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+menu_items = [];
+return MASSE_parm_utils.NodeReferenceTools.populate_menu()
+return menu_items
+            ]]></contentsScriptCode>
+            <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.NodeReferenceTools(kwargs).jump_to_reference_node()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+            ]]></scriptCode>
+    </scriptMenuStripDynamic>
+</subMenu>
     </menu>
 </menuDocument>

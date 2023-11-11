@@ -9,8 +9,9 @@ import hou
 import os
 
 pref_file = os.path.join(os.path.dirname(__file__), "../../../userPreferences.json")
-
-
+# pattern used for finding node references in session module
+node_referece_re = re.compile(r"MASSE_NODE_REFERENCES = (?P<dict>.*)")
+node_reference_var = "MASSE_NODE_REFERENCES"
 class HoudiniError(Exception):
     """Display message in houdini"""
 
@@ -1086,3 +1087,140 @@ def attrib_from_node_name(kwargs):
                 # set attrib typle
                 name_node.parm("class").set(attrib_select[0])
 
+
+# Class for all functions related to referencing nodes in network
+class NodeReferenceTools:
+    def __init__(self, kwargs) -> None:
+        self.kwargs = kwargs
+
+    def add_to_session_references(self):
+        sel_nodes = self.kwargs["items"]
+        # node_name:node_path dict of selected nodes
+        sel_nodes_dict = {lable: path for lable, path in [(node.name(), node.path()) for node in sel_nodes]}
+
+        # pattern for finding MASSE_NODE_REFERENCES
+        found_references = NodeReferenceTools.get_references_from_session()
+
+        # give option to update lables for selected nodes
+        base_lables = list(sel_nodes_dict.keys())
+        user_lable_override = hou.ui.readMultiInput("Enter lable(s) for reference(s)", base_lables,
+                                                    buttons=("Cancel", "OK"), default_choice=1,
+                                                    initial_contents=base_lables)
+        nodes_to_add = defaultdict(dict)
+        if user_lable_override[0] == 1:
+            for old_lable, override_lable in zip(sel_nodes_dict, user_lable_override[1]):
+                nodes_to_add[override_lable] = sel_nodes_dict[old_lable]
+        found_references.update(nodes_to_add)
+
+        # update session module
+        found_references_str = json.dumps(found_references)
+        NodeReferenceTools.set_reference_dict(found_references_str)
+
+    # creates reference to selected node. Depending on node type, action can be different:
+    # SOP - Created object merge with relative referene to node.
+    # For now function handle only SOP node, if impemented, can determine action of "create reference"
+    def create_reference_node(self, node_path):
+        menu_node = self.kwargs["node"]
+        node_parent = menu_node.parent()
+
+        node_label = self.kwargs["selectedlabel"]
+        node_pos = menu_node.position()
+        reference_node = hou.node(node_path)
+        # SOP NODE IMPLEMENTATION
+        if isinstance(reference_node, hou.SopNode):
+            try:
+                object_merge = node_parent.createNode("object_merge", f"{node_label}_REFERENCE")
+                object_merge.setPosition([node_pos[0]+2, node_pos[1]])
+
+                rel_path = object_merge.relativePathTo(reference_node)
+                object_merge.parm("objpath1").set(rel_path)
+                return
+            # raise descriptive exeption, if trying to create SOP node in non SOP network
+            except hou.OperationFailed:
+                raise HoudiniError("SOP node can't be created in non SOP network")
+        raise HoudiniError("No implementaion found for selected node type")
+
+    # function called when selected menu item from "MASSE jump to node reference"
+    def jump_to_reference_node(self):
+        network_editor = hou.ui.paneTabUnderCursor()
+        node_path = self.kwargs["selectedtoken"]
+        reference_node = hou.node(node_path)
+        network_editor.setCurrentNode(reference_node)
+        network_editor.homeToSelection()
+
+    # function called when selected menu item "Remove nodes from references"
+    @staticmethod
+    def remove_from_session_references():
+        found_references = NodeReferenceTools.get_references_from_session()
+        if found_references:
+            menu_entries = list(found_references.keys())
+            user_selection = hou.ui.selectFromList(menu_entries, exclusive=False, title="Select references to remove")
+            if user_selection:
+                found_references_updated = \
+                    {key: found_references[key] for index, key in enumerate(found_references)
+                     if index not in user_selection}
+                found_references_updated_str = json.dumps(found_references_updated)
+                NodeReferenceTools.set_reference_dict(found_references_updated_str)
+
+    # searches for node_reference_var in session module, and extracts dictionary of stores references
+    @staticmethod
+    def get_references_from_session() -> dict:
+        session_module = hou.sessionModuleSource()
+        # find MASSE_NODE_REFERENCES
+        has_references = session_module.find(node_reference_var)
+        # get existing references
+        found_references = {}
+        if has_references > -1:
+            found_references_re = re.search(node_referece_re, session_module)
+            found_references = json.loads(found_references_re.group("dict"))
+        return found_references
+
+    # clean given dictionary of node_name:node_path of any node_paths that are not valid(used when creating OP menu)
+    @staticmethod
+    def clean_references_dict(references: dict) -> dict:
+        references_clean = defaultdict(dict)
+        for lable in references:
+            path = references[lable]
+            if hou.node(path):
+                references_clean[lable] = path
+        return references_clean
+
+    # updates reference dict in session module, if none give calls get_references_from_session
+    @staticmethod
+    def set_reference_dict(references=None):
+        if not references:
+            references = NodeReferenceTools.get_references_from_session()
+        session_module = hou.sessionModuleSource()
+        # find MASSE_NODE_REFERENCES
+        has_references = session_module.find(node_reference_var)
+        if has_references > -1:
+            session_module_updated = re.sub(node_referece_re, f"{node_reference_var} = {references}", hou.sessionModuleSource())
+            hou.setSessionModuleSource(session_module_updated)
+        else:
+            hou.appendSessionModuleSource(f"{node_reference_var} = {references}")
+
+    # used in OPmenu to hide/show menu reference dynamic menus
+    @staticmethod
+    def has_reference_dict():
+        if NodeReferenceTools.get_references_from_session() != {}:
+            return True
+        return False
+
+    # used in OPmenu for one function call to show only valid node paths in menus
+    @staticmethod
+    def menu_update_session_dict():
+        references_dict = NodeReferenceTools.get_references_from_session()
+        references_dict = NodeReferenceTools.clean_references_dict(references_dict)
+        NodeReferenceTools.set_reference_dict(json.dumps(references_dict))
+
+    # creates a list that will be used by scriptMenuStripDynamic to show available nodes
+    @staticmethod
+    def populate_menu() -> list:
+        menu_item_pair = []
+        node_references = NodeReferenceTools.get_references_from_session()
+        for lable in node_references:
+            node_path = node_references[lable]
+            if hou.node(node_path):
+                menu_item_pair.append(node_path)
+                menu_item_pair.append(lable)
+        return menu_item_pair
