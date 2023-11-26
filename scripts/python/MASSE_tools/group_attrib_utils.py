@@ -55,22 +55,7 @@ class AttribGroupUtils:
                 except KeyError:
                     HoudiniError("No geometry found")
                 if self.geo:
-                    return_dict = defaultdict(list)
-                    for attrib_type in attrib_strings:
-                        for attrib in getattr(self.geo, f"{attrib_type}Attribs")():
-                            attrib_name = attrib.name()
-                            attib_is_array = attrib.isArrayType()
-                            is_array = ""
-                            if attib_is_array:
-                                is_array = " array"
-                            attrib_data_type = attrib.dataType().name()
-                            attrib_label = f"{attrib_name}({attrib_data_type}{is_array})"
-                            return_dict[f"attrib_{attrib_type}"].append([attrib_name, attrib_label])
-                    for group_type in group_strings:
-                        for group_str in getattr(self.geo, f"{group_type}Groups")():
-                            group_name = group_str.name()
-                            return_dict[f"group_{group_type}"].append([group_name, group_name])
-                    return dict(return_dict)
+                    return AttribGroupUtils.get_attribs_groups(self.geo)
                 else:
                     raise HoudiniError("No node detected")
 
@@ -167,3 +152,52 @@ class AttribGroupUtils:
                 pyperclip.copy(button_val_dict[int(button_val)])
             if button_val == "0":
                 pyperclip.copy("")
+
+    @staticmethod
+    def get_attribs_groups(geometry):
+        return_dict = defaultdict(list)
+        for attrib_type in attrib_strings:
+            for attrib in getattr(geometry, f"{attrib_type}Attribs")():
+                attrib_name = attrib.name()
+                attib_is_array = attrib.isArrayType()
+                is_array = ""
+                if attib_is_array:
+                    is_array = " array"
+                attrib_data_type = attrib.dataType().name()
+                attrib_label = f"{attrib_name}({attrib_data_type}{is_array})"
+                return_dict[f"attrib_{attrib_type}"].append([attrib_name, attrib_label])
+        for group_type in group_strings:
+            for group_str in getattr(geometry, f"{group_type}Groups")():
+                group_name = group_str.name()
+                return_dict[f"group_{group_type}"].append([group_name, group_name])
+        return dict(return_dict)
+
+    # updates group/string parms witch are used as a reference for group/attrib deletion
+    @staticmethod
+    def write_delete_data_to_parm(kwargs):
+        node = kwargs["node"]
+        parm = kwargs["parm"]
+        parm_name = parm.name()
+
+        template_group = node.parmTemplateGroup()
+        parm_template = parm.parmTemplate()
+        stored_script_val = int(parm_template.tags()["old_script_value"])
+        script_value = int(kwargs["script_value"])
+
+        # button index: button value dict
+        menu_items = {1*2**enumm: menu_item for enumm, menu_item in enumerate(parm_template.menuItems())}
+
+        # determine witch button was pressed
+        pressed_button = menu_items[abs(script_value - stored_script_val)]
+
+        # get current entires for relavent parm
+        active_parm = node.parm(f"{parm_name}_del")
+        delete_parm = [geo_data for geo_data in active_parm.eval().split(" ") if geo_data]
+        if pressed_button not in delete_parm:
+            delete_parm.append(pressed_button)
+        else:
+            delete_parm.remove(pressed_button)
+        active_parm.set(" ".join(delete_parm))
+        parm_template.setTags({"old_script_value": str(script_value)})
+        template_group.replace(parm_name, parm_template)
+        node.setParmTemplateGroup(template_group)
