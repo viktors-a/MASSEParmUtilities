@@ -26,3 +26,14 @@ def get_viewport_selection_bbox(kwargs):
             else:
                 parent_node.parm("initbounds").pressButton()
 
+# get volume atribute values, used for caching and loading landscape files
+def generateVolumeMenu(geometry, attib_name="name") -> list:
+    volume_menu = []
+    if geometry:
+        for geo in geometry.prims():
+            if geo.type() == hou.primType.Volume:
+                volume_name = geo.stringAttribValue(attib_name)
+                if volume_name and volume_name not in volume_menu:
+                    volume_menu.append(volume_name)
+                    volume_menu.append(volume_name)
+    return volume_menu

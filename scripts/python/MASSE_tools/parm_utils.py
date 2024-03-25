@@ -985,6 +985,63 @@ def spilt_by_unique_attrib(kwargs):
                 blast_node.moveToGoodPosition()
 
 
+def spilt_by_groups(kwargs):
+    """Create blast node for every group in a geometry"""
+    # mapping from list menu selection
+    node = kwargs["node"]
+    geo = node.geometry()
+    # inner function for creating blast node
+    def create_blast_nodes(group, group_type_index):
+        try:
+            blast_node = node.parent().createNode("blast", group)
+        except hou.OperationFailed:
+            blast_node = node.parent().createNode("blast")
+        blast_node.parm("group").set(group)
+        blast_node.parm("grouptype").set(group_type_index)
+        # make sure negate is on
+        blast_node.parm("negate").set(1)
+        # set input to blast node
+        blast_node.setInput(0, node)
+        blast_node.moveToGoodPosition()
+    operation_help = "Groups to split"
+    selected_opration = hou.ui.displayMessage(operation_help, buttons=("Cancel", "Prim groups", "Point groups", "Edge groups", "Custom selection"))
+    if selected_opration == 1:
+        prim_groups = (group.name() for group in geo.primGroups())
+        for group in prim_groups:
+            create_blast_nodes(group, 4)
+    if selected_opration == 2:
+        point_groups = (group.name() for group in geo.pointGroups())
+        for group in point_groups:
+            create_blast_nodes(group, 3)
+    if selected_opration == 3:
+        edge_groups = (group.name() for group in geo.edgeGroups())
+        for group in edge_groups:
+            create_blast_nodes(group, 2)
+
+    # handel custom selection
+    if selected_opration == 4:
+        selectable_groups = {}
+        # mapping for blast node grouptype menu
+        group_type_mapping = {hou.EdgeGroup: [2, "EDGE"], hou.PrimGroup: [4, "PRIM"], hou.PointGroup: [3, "POINT"]}
+        # all group objects of geometry
+        group_objs = (group for group_tuple in (geo.edgeGroups(), geo.pointGroups(), geo.primGroups()) for group in group_tuple)
+        for index, group in enumerate(group_objs):
+            group_type_index = group_type_mapping[type(group)][0]
+            group_name = group.name()
+            group_display_name = f"{group_type_mapping[type(group)][1]} - {group_name}"
+            selectable_groups[index] = [group_display_name, group_name, group_type_index]
+        # create menu entries
+        ui_list_entries = [selectable_groups[entry][0] for entry in selectable_groups]
+        # create selectable ui menu
+        if ui_list_entries:
+            selection = hou.ui.selectFromList(ui_list_entries, exclusive=False, title="Groups to split")
+            if selection:
+                for selected_group_index in selection:
+                    group_name = selectable_groups[selected_group_index][1]
+                    menu_mapping = selectable_groups[selected_group_index][2]
+                    create_blast_nodes(group_name, menu_mapping)
+
+
 def paste_unreal_reference(kwargs, attrb_class, attrib_name):
     """Used for pasting unreal references from clipboard to selected nodes"""
     # menu node

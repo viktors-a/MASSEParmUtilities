@@ -88,6 +88,28 @@ hdefereval.executeDeferred(runLater)
                 </scriptCode>
             </scriptItem>
 
+<!-- SPLIT BY GROUPS-->
+            <scriptItem id="MASSE_split_by_groups">
+            <label>Split by groups</label>
+                <expression><![CDATA[
+selected_nodes = hou.selectedNodes()
+for node in selected_nodes:
+    if not isinstance(node, hou.SopNode):
+        return False
+else:
+    return True
+]]>
+                </expression>
+                <scriptCode>
+<![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.spilt_by_groups(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
 
 
 <separatorItem/>
