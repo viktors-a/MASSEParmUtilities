@@ -106,6 +106,32 @@ hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
 
+                        <scriptItem id = "MASSE_copy_parm_name">
+                <label>Copy parm name</label>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    from MASSE_tools import pyperclip
+    parms = kwargs["parms"]
+    parm_name = ""
+    if len(parms) > 1:
+        parm_name = parms[0].tuple().name()
+    else:
+        parm_name = parms[0].name()
+    # if ctrlclick is held down encapsulate parm name in qoutes
+    if kwargs["ctrlclick"]:
+        pyperclip.copy(f"\"{parm_name}\"")
+    else:
+        pyperclip.copy(parm_name)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+<separatorItem/>
+
+
 <separatorItem/>
 
 <!-- SET MULTIPARM COUNTER -->
