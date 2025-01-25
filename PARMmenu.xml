@@ -106,23 +106,36 @@ hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
             </scriptItem>
 
-                        <scriptItem id = "MASSE_copy_parm_name">
-                <label>Copy parm name</label>
+                <scriptItem id = "MASSE_copy_parm_name">
+                    <label>Copy parm name</label>
                 <scriptCode><![CDATA[
 def runLater():
     from MASSE_tools import parm_utils as MASSE_parm_utils
-    from MASSE_tools import pyperclip
-    parms = kwargs["parms"]
-    parm_name = ""
-    if len(parms) > 1:
-        parm_name = parms[0].tuple().name()
-    else:
-        parm_name = parms[0].name()
-    # if ctrlclick is held down encapsulate parm name in qoutes
-    if kwargs["ctrlclick"]:
-        pyperclip.copy(f"\"{parm_name}\"")
-    else:
-        pyperclip.copy(parm_name)
+    MASSE_parm_utils.parmUtils.get_parm_str_attribute(kwargs, attribute="name")
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+                <scriptItem id = "MASSE_copy_parm_label">
+                    <label>Copy parm label</label>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.parmUtils.get_parm_str_attribute(kwargs, attribute="description")
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+                <scriptItem id = "MASSE_copy_help_formatted_string">
+                    <label>Copy help formatted string</label>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.parmUtils.copy_help_formatted_string(kwargs)
 import hdefereval
 hdefereval.executeDeferred(runLater)
 

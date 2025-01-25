@@ -484,6 +484,38 @@ class parmUtils:
         else:
             raise HoudiniError("No string found.")
 
+    # used in 'Copy parm menu/lable' parameter menus to copy data to clipboard. Defaults to 'name', but also used
+    # with 'description' to get label.
+    @staticmethod
+    def get_parm_str_attribute(kwargs, attribute="name"):
+        parms = kwargs["parms"]
+        return_str = ""
+        if len(parms) > 1:
+            return_str = getattr(parms[0].tuple(), attribute)()
+        else:
+            return_str = getattr(parms[0], attribute)()
+        # if ctrlclick is held down, encapsulate string in quotes
+        if kwargs["ctrlclick"]:
+            pyperclip.copy(f"\"{return_str}\"")
+        else:
+            pyperclip.copy(return_str)
+
+    # Copies formatted to clipboard parameter label and name string, this is intended to be used when creating
+    # help documentation for HDAs.
+    @staticmethod
+    def copy_help_formatted_string(kwargs):
+        parms = kwargs["parms"]
+        if len(parms) > 1:
+            parm_name = getattr(parms[0].tuple(), "name")()
+            parm_description = getattr(parms[0].tuple(), "description")()
+        else:
+            parm_name = getattr(parms[0], "name")()
+            parm_description = getattr(parms[0], "description")()
+        formatted_str = (f"{parm_description}:\n"
+                         f"   #id: {parm_name}\n"
+                         f"   ")
+        pyperclip.copy(formatted_str)
+
     def valid_temp(self, invalid_parm_node: hou.Node) -> hou.ParmTemplate:
         # sets up parm that won't interfere with other parms already in parm node
         base_parm = self.parm_template
