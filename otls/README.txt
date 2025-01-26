@@ -1,1 +1,0 @@
-These are LC HDAs. To disable HDAs, rename this folder to something else, like "_otls"
