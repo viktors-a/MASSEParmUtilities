@@ -539,63 +539,123 @@ class parmUtils:
     def create_relative_parm_reference(self, assign_to_definition: bool = True) -> None:
         # if parm node is set, creates parm on that node and creates expression that refrences newly created parm
         if self.parm_control_node:
-            if not self.parm.isMultiParmInstance():
-                parm_val_tuple = self.parm_tuple.eval()
-                # if node is an hda, give option to add parm to hda definition or spare parm
-                if self.hda_template_group:
-                    if assign_to_definition:
-                        set_on = self.parm_control_node.type().definition()
-                    else:
-                        set_on = self.parm_control_node
-                else:
-                    set_on = self.parm_control_node
-                # create new folder that will store all the nodes form one node
-                folder_id = self.parm_node.path()
-                folder_id = folder_id.replace("/", "_").strip("_")
-                group = set_on.parmTemplateGroup()
-                if group.findFolder(folder_id):
-                    found_folder = group.findFolder(folder_id)
-                    valid_temp = self.valid_temp(self.parm_control_node)
-                    group.appendToFolder(
-                        found_folder, valid_temp)
-                    set_on.setParmTemplateGroup(
-                        group, rename_conflicting_parms=True)
-                    self.parm_control_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
-                else:
-                    # if the user tries to write parm to hda definition on a node that's already
-                    # referenced in a sapre parms, trow an exception to avoid confusion
-                    if self.hda_template_group and assign_to_definition:
-                        if self.parm_control_node.parmTemplateGroup().findFolder(folder_id):
-                            raise HoudiniError(
-                                "Folder found in a spare parameters of the node")
-                    # create a folder that will be named after the full path of the node,
-                    # and put all parameters from that node in it
-                    valid_temp = self.valid_temp(self.parm_control_node)
-                    new_folder = hou.FolderParmTemplate(
-                        folder_id, folder_id, (valid_temp,), folder_type=hou.folderType.Simple)
-                    group.append(new_folder)
-                    set_on.setParmTemplateGroup(
-                        group, rename_conflicting_parms=True)
-                    self.parm_control_node.parmTuple(valid_temp.name()).set(parm_val_tuple)
 
+            parm_val_tuple = self.parm_tuple.eval()
+
+            # If node is and HDA, give option to add parm to hda definition or spare parm
+            if self.hda_template_group and assign_to_definition:
+                if assign_to_definition:
+                    set_on = self.parm_control_node.type().definition()
             else:
-                raise HoudiniError("Parm is a multiparm instance")
+                set_on = self.parm_control_node
 
-            # set up an expression for referencing new parm
-            refeshed_folder = set_on.parmTemplateGroup().findFolder(folder_id)
-            latest_temp = refeshed_folder.parmTemplates()[-1].name()
-            parm_to_ref = self.parm_control_node.parmTuple(latest_temp)
+            # Create dialog box and ask for user to set new parameter data
+            group = set_on.parmTemplateGroup()
 
-            for to_set, to_fetch in zip(parm_to_ref, self.parm_tuple):
-                parm_name = to_set.name()
-                refrence_path = self.parm_node.relativePathTo(self.parm_control_node)
-                parm_path = f"{self.channel_type}(\"{refrence_path}/{parm_name}\")"
-                # if parm is a ramp, create a parm without expression, the user will have to link them manually
-                if not isinstance(self.parm.parmTemplate(), hou.RampParmTemplate):
-                    to_fetch.setExpression(
-                        parm_path, language=hou.exprLanguage.Hscript)
-        else:
-            raise HoudiniError("No parm enviroment parm found")
+            # For certain 'parm_template' we can fetch default and current values. We use those to set default
+            # values for dialog window.
+
+            # universal data for all 'parmTemplate' types
+            parm_name = self.parm_template.name()
+            parm_label = self.parm_template.label()
+            input_labels = ["name", "label"]
+            initial_contents = [parm_name, parm_label]
+
+            # Try to add defaultValue
+            b_default_val = 0
+            b_min_max_val = 0
+            try:
+                default_vals = []
+                for parm in self.parms:
+                    default_vals.append(str(parm.eval()))
+                input_labels.append("default value")
+                initial_contents.append(" ".join(default_vals))
+                b_default_val = 1
+            except AttributeError:
+                pass
+
+            # Try to add minValue and maxValue
+            try:
+                min_val = getattr(self.parm_template, "minValue")()
+                max_val = getattr(self.parm_template, "maxValue")()
+                b_min_max_val = 1
+                input_labels.append("min value")
+                input_labels.append("max value")
+                initial_contents.append(str(min_val))
+                initial_contents.append(str(max_val))
+
+            except AttributeError:
+                pass
+
+            button_idx, values = hou.ui.readMultiInput(
+                "Set new parameter proporties",
+                input_labels,
+                initial_contents=initial_contents,
+                buttons=("OK", "Cancel"),
+                default_choice=0, close_choice=1,
+            )
+            if button_idx == 0:
+                # Create new parmTemplate if parameter component was clicked on
+                self.parm_template.setNumComponents(len(self.parms))
+                # Clear all conditionals
+                self.parm_template.setConditional(hou.parmCondType.DisableWhen, "")
+                self.parm_template.setConditional(hou.parmCondType.HideWhen, "")
+                self.parm_template.setConditional(hou.parmCondType.NoCookWhen, "")
+                foo_dict = {}
+                self.parm_template.setTags({})
+                # if(len(self.parms) != self.parm_template.numComponents()):
+                # set universal data
+                self.parm_template.setName(values[0])
+                self.parm_template.setLabel(values[1])
+
+                # Set default value for new parameters created. Most common are implemented
+                if b_default_val:
+                    default_vals = values[2].split(" ")
+                    if isinstance(self.parm_template, hou.IntParmTemplate):
+                        default_vals = [int(default_val) for default_val in default_vals]
+                        self.parm_template.setDefaultValue(default_vals)
+
+                    if isinstance(self.parm_template, hou.FloatParmTemplate):
+                        default_vals = [float(default_val) for default_val in default_vals]
+                        self.parm_template.setDefaultValue(default_vals)
+
+                    if isinstance(self.parm_template, hou.StringParmTemplate):
+                        default_vals = [str(default_val) for default_val in default_vals]
+                        self.parm_template.setDefaultValue(default_vals)
+
+                    if isinstance(self.parm_template, hou.ToggleParmTemplate):
+                        default_toggle = False
+                        if default_vals[0] == "1":
+                            default_toggle = True
+                        self.parm_template.setDefaultValue(default_toggle)
+
+                    if isinstance(self.parm_template, hou.MenuParmTemplate):
+                        self.parm_template.setDefaultValue(int(default_vals[0]))
+
+                # Set min and max values for new parameters created.
+                if b_min_max_val:
+                    min_val = values[3]
+                    max_val = values[4]
+                    if isinstance(self.parm_template, hou.IntParmTemplate):
+                        self.parm_template.setMinValue(int(min_val))
+                        self.parm_template.setMaxValue(int(max_val))
+                    if isinstance(self.parm_template, hou.FloatParmTemplate):
+                        self.parm_template.setMinValue(float(min_val))
+                        self.parm_template.setMaxValue(float(max_val))
+
+                group.append(self.parm_template)
+                set_on.setParmTemplateGroup(group, rename_conflicting_parms=True)
+
+                # Set expression for referencing new parms.
+                parm_tuple_added = self.parm_control_node.parmTuples()[-1]
+                for to_set, to_fetch in zip(parm_tuple_added, self.parms):
+                    parm_name = to_set.name()
+                    refrence_path = self.parm_node.relativePathTo(self.parm_control_node)
+                    parm_path = f"{self.channel_type}(\"{refrence_path}/{parm_name}\")"
+                    # If parm is a ramp, create a parm without expression, the user will have to link them manually
+                    if not isinstance(self.parm.parmTemplate(), hou.RampParmTemplate):
+                        to_fetch.setExpression(
+                            parm_path, language=hou.exprLanguage.Hscript)
 
     def delete_parm(self):
         # remove spare or hda parm
