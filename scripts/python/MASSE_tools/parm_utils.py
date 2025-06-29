@@ -1237,6 +1237,69 @@ def attrib_from_node_name(kwargs):
                 name_node.parm("class").set(attrib_select[0])
 
 
+# Creates 'clean' node with paramaters for selection of attributes/groups to be deleted filled with
+# difference between two nodes.
+def del_attrib_group_diff(kwargs):
+    items = kwargs["items"]
+    node = kwargs["node"]
+    ctrlclick = kwargs["ctrlclick"]
+    parent = node.parent()
+
+    def get_geo_data(geo):
+        attrib_types = ["point", "prim", "vertex", "global"]
+        group_types = ["point", "prim", "vertex", "edge"]
+        data = defaultdict(list)
+        for attrib_type in attrib_types:
+            attribs = getattr(geo, attrib_type+"Attribs")()
+            [data["attribs"].append(attrib.name()) for attrib in attribs]
+        for group_type in group_types:
+            groups = getattr(geo, group_type + "Groups")()
+            [data["groups"].append(group.name()) for group in groups]
+        return data
+
+    def invert_seletion(all_entries):
+        invert_entries = " ".join(["".join(["^", entry]) for entry in all_entries])
+        return "".join(["* ", invert_entries])
+
+    # get all initial attribute
+    inti_geo = items[0].geometry()
+    mod_geo = node.geometry()
+    if inti_geo and mod_geo:
+        inti_data = get_geo_data(inti_geo)
+        mod_data = get_geo_data(mod_geo)
+        attrib_diff = [attrib for attrib in mod_data["attribs"] if attrib not in inti_data["attribs"]]
+        group_diff = [group for group in mod_data["groups"] if group not in inti_data["groups"]]
+
+        # create 'clean' node and clear all toggles
+        clean_node = node.createOutputNode("clean")
+        for parm in clean_node.parms():
+            if isinstance(parm.parmTemplate(), hou.ToggleParmTemplate):
+                parm.set(0)
+        clean_node.parm("dodelattribs").set(1)
+        clean_node.parm("dodelgroups").set(1)
+        if ctrlclick:
+            clean_node.parm("delattribs").set(invert_seletion(attrib_diff))
+            clean_node.parm("delgroups").set(invert_seletion(group_diff))
+            return
+        clean_node.parm("delattribs").set(" ".join(attrib_diff))
+        clean_node.parm("delgroups").set(" ".join(group_diff))
+
+
+# Formats a new string by adding or removing '^' for each space seperated string.
+def invert_selection(kwargs):
+    parm = kwargs["parms"][0]
+    selection = parm.evalAsString().split()
+    inv_selection = []
+    for _selection in selection:
+        if not re.match(r"\^?\w+", _selection):
+            inv_selection.append(_selection)
+        if re.match(r"(?P<caret>\^)\w+", _selection):
+            inv_selection.append(_selection.replace("^", ""))
+        if re.match(r"\w+", _selection):
+            inv_selection.append("".join(["^", _selection]))
+    parm.set(" ".join(inv_selection))
+
+
 # Class for all functions related to referencing nodes in network
 class NodeReferenceTools:
     def __init__(self, kwargs) -> None:

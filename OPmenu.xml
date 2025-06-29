@@ -138,6 +138,32 @@ hdefereval.executeDeferred(runLater)
                 </scriptCode>
             </scriptItem>
 
+
+<!-- Delete attribute/group difference -->
+            <scriptItem id="MASSE_del_attrib_group_diff">
+            <label>Delete attribute/group difference</label>
+                <expression><![CDATA[
+selected_nodes = hou.selectedNodes()
+
+for node in selected_nodes:
+    if not isinstance(node, hou.SopNode) or len(selected_nodes) != 2:
+        return False
+else:
+    return True
+]]>
+                </expression>
+                <scriptCode>
+<![CDATA[
+def runLater():
+
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.del_attrib_group_diff(kwargs)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>
+                </scriptCode>
+            </scriptItem>
+
 <separatorItem/>
 
 
