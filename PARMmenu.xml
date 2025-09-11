@@ -452,6 +452,28 @@ hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
                 </scriptItem>
 
+<!--OPEN DIRECTORY PATH IN FILE EXPLORER-->
+
+            <scriptItem id = "MASSE_open_with_file_explorer">
+                <label>Open with file explorer</label>
+                <expression><![CDATA[
+if isinstance(kwargs["parms"][0].parmTemplate(), hou.StringParmTemplate):
+    return True
+else:
+    return False
+]]>
+                </expression>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.parmUtils(kwargs).open_output_directory()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+
 <!--EDIT PARM IN EXTERNAL EDITOR-->
             <subMenu id = "MASSE_open_with_editor_parm">
             <label>Open with editor</label>

@@ -866,6 +866,14 @@ class parmUtils:
                     type_menu.set(5)
                     attrib_type.set(5)
 
+    def open_output_directory(self):
+        folder_to_open = self.parm.evalAsString()
+        if os.path.isdir(folder_to_open):
+            # opens directory
+            os.startfile(folder_to_open)
+        else:
+            raise hou.OperationFailed("Directory not found!")
+
 
 class MultiparmUtils(parmUtils):
 
@@ -1436,3 +1444,4 @@ class NodeReferenceTools:
                 menu_item_pair.append(node_path)
                 menu_item_pair.append(lable)
         return menu_item_pair
+
