@@ -1,4 +1,4 @@
-Houdini Tested on Houdini 20.5 and Python 3.11
+Tested on Houdini 21.0 and Python 3.11
 To install, add folder to HOUDINI_PATH environment variable.
 [Playlist of videos showing how to use the tools](https://youtube.com/playlist?list=PLUBK6gGjWEeojLKIa3_HQVU8L4jUja_dy)
 
