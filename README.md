@@ -1,5 +1,19 @@
 Tested on Houdini 21.0 and Python 3.11
 To install, add folder to HOUDINI_PATH environment variable.
+
+You can support my work/development of the package:
+<p align="center">
+  <a href="https://buymeacoffee.com/viktorsanfimovs">
+    <img src="https://img.shields.io/badge/BUY ME A COFFEE-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black"/>
+  </a>
+  <a href="https://viktorsanfimovs.gumroad.com/">
+    <img src="https://img.shields.io/badge/Gumroad-00bfff?style=for-the-badge&logo=gumroad"/>
+  </a> 
+  <a href="https://www.youtube.com/@viktors_anfimovs">
+    <img src="https://img.shields.io/badge/Youtube-FF0000?style=for-the-badge&logo=youtube"/>
+  </a>
+</p>
+
 [Playlist of videos showing how to use the tools](https://youtube.com/playlist?list=PLUBK6gGjWEeojLKIa3_HQVU8L4jUja_dy)
 
 ## FEATURES:
