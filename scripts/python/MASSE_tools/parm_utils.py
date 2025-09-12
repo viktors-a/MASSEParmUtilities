@@ -867,10 +867,14 @@ class parmUtils:
                     attrib_type.set(5)
 
     def open_output_directory(self):
-        folder_to_open = self.parm.evalAsString()
-        if os.path.isdir(folder_to_open):
+        path = self.parm.evalAsString()
+        if os.path.isdir(path):
             # opens directory
-            os.startfile(folder_to_open)
+            os.startfile(path)
+            return
+        if os.path.isfile(path):
+            os.startfile(os.path.dirname(path))
+            return
         else:
             raise hou.OperationFailed("Directory not found!")
 
