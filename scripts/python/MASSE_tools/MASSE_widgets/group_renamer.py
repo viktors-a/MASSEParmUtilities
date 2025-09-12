@@ -4,11 +4,11 @@ Email: houdinielement@gmail.com
 """
 import os
 import hou
-from PySide2.QtCore import QFile
-from PySide2.QtGui import QPixmap
-from PySide2.QtWidgets import QWidget, QPushButton, QVBoxLayout, QScrollArea, QLabel,\
+from PySide6.QtCore import QFile
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QWidget, QPushButton, QVBoxLayout, QScrollArea, QLabel,\
     QHBoxLayout, QLineEdit, QComboBox
-from PySide2.QtUiTools import QUiLoader
+from PySide6.QtUiTools import QUiLoader
 
 
 class HoudiniError(Exception):
