@@ -1217,13 +1217,13 @@ def color_nodes():
 
 def attrib_from_node_name(kwargs):
     selected_nodes = kwargs["items"]
-    button_list = ("Detail","Prim", "Point", "Cancel")
-    attrib_select = hou.ui.readInput("Enter attrib name", buttons=button_list,initial_contents="name")
+    button_list = ("Detail", "Primitive", "Point", "Cancel")
+    attrib_select = hou.ui.readInput("Enter attrib name", buttons=button_list, initial_contents="name")
     selected_button = button_list[attrib_select[0]]
     attrib_name = attrib_select[1]
     # make sure attribute os only from letters
     attrib_name = re.sub(r"[^a-zA-Z]", "_", attrib_name).strip("_")
-    if  attrib_name:
+    if attrib_name:
         if selected_button != "Cancel":
             for node in selected_nodes:
                 node_name = node.name()
@@ -1231,18 +1231,20 @@ def attrib_from_node_name(kwargs):
                 node_name = node_name.strip("_")
 
                 # connect to output 0 name node
-                name_node = node.parent().createNode("attribwrangle", f"attrib_{attrib_name}")
+                name_node = node.parent().createNode("attribcreate", f"attrib_{attrib_name}")
                 name_node.setInput(0, node)
                 node_pos = node.position()
                 node_pos[1] += -1
                 name_node.setPosition(node_pos)
 
-                # set wrangle code
-                wrangle_code = f"s@{attrib_name} = \"{node_name}\";"
-                name_node.parm("snippet").set(wrangle_code)
-
-                # set attrib typle
-                name_node.parm("class").set(attrib_select[0])
+                # set name
+                name_node.parm("name1").set(attrib_name)
+                # set class
+                name_node.parm("class1").set(selected_button.lower())
+                # set type
+                name_node.parm("type1").set(3)
+                # set expression
+                name_node.parm("string1").set("`opinput(\".\",0)")
 
 
 # Creates 'clean' node with paramaters for selection of attributes/groups to be deleted filled with
