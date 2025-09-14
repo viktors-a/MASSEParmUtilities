@@ -15,7 +15,7 @@ You can support my work/development of the package:
 </p>
 
  <a href="https://youtu.be/ccT3NMykkcU">
-    <img src="https://img.shields.io/badge/Hoduini%2021.0%20showcase-blue"/>
+    <img src="https://img.shields.io/badge/Houdini%2021.0%20showcase-blue"/>
   </a><a href="https://youtube.com/playlist?list=PLUBK6gGjWEeojLKIa3_HQVU8L4jUja_dy">
     <img src="https://img.shields.io/badge/All%20features%20playlist-green"/>
   </a>
