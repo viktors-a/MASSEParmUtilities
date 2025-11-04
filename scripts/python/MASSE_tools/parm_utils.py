@@ -1086,17 +1086,17 @@ class MultiparmUtils(parmUtils):
                         else:
                             if len(self.parms) == 1:
                                 parm.set(
-                                    f"{unexpanded_str} `chs(\"{rel_path} + {sel_counter})`",
+                                    f"{unexpanded_str}`chs(\"{rel_path} + {sel_counter})`",
                                     hou.exprLanguage.Hscript)
                             else:
                                 if naming_scheme == "base1":
                                     print("yes")
                                     parm.set(
-                                        f"{unexpanded_str} `chs(\"{rel_path} + {sel_counter} + {_index+1})",
+                                        f"{unexpanded_str}`chs(\"{rel_path} + {sel_counter} + {_index+1})",
                                         hou.exprLanguage.Hscript)
                                 else:
                                     parm.set(
-                                        f"{unexpanded_str} `chs(\"{rel_path} + {sel_counter} + {naming_scheme[_index]})",
+                                        f"{unexpanded_str}`chs(\"{rel_path} + {sel_counter} + {naming_scheme[_index]})",
                                         hou.exprLanguage.Hscript)
 
 
