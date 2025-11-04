@@ -960,6 +960,146 @@ class MultiparmUtils(parmUtils):
         rel_path = node.relativePathTo(spare_input_node)
         node.parm(base_spare).set(rel_path)
 
+
+    # Create reference to multiparameter.
+    def reference_loop_parameter(self, spare=True):
+        b_append = self.kwargs["ctrlclick"]
+        #   check for necesarry ENVs.
+        multiparm_env = hou.getenv("MASSE_LOOP_MULTIPARM")
+        loop_counter_env = hou.getenv("MASSE_LOOP_COUNTER_NODE")
+        if multiparm_env and loop_counter_env:
+
+            counter_path = 0
+            # When referencing spare parameter(-1,-2 etc.), we need to check if any spare already
+            # references counter node, if not we create one.
+
+            if spare:
+                spare_parms = self.parm_node.spareParms()
+                spare_inputs = []
+                spare_values = []
+                for spare_parm in spare_parms:
+                    spare_name = spare_parm.name()
+                    if re.fullmatch(r"spare_input\d+", spare_name):
+                        spare_inputs.append(spare_name)
+                        spare_values.append(spare_parm.eval())
+
+                # check if any spare input is referencing meta node
+                mp_meta_node = hou.node(loop_counter_env)
+                rel_path = self.parm_node.relativePathTo(mp_meta_node)
+                if rel_path in spare_values:
+                    counter_path = spare_values.index(rel_path)
+                else:
+                    spare_indeces = []
+                    for spare_input in spare_inputs:
+                        _index = re.findall(r"\d+$", spare_input)
+                        if _index:
+                            spare_indeces.append(int(_index[0]))
+                    spare_indeces.sort()
+                    if counter_path in spare_indeces:
+                        counter_path = spare_indeces[-1] + 1
+
+                    # create spare parameter and sets its value
+
+                    spare_parm = f"spare_input{counter_path}"
+                    spare_parm = hou.StringParmTemplate(
+                        spare_parm, spare_parm, 1, string_type=hou.stringParmType.NodeReference)
+                    # set up tags and help
+
+                    spare_input_help = f"Refer to this in expressions as -{counter_path}, such as: npoints(-{counter_path})"
+                    spare_tags = {"opfilter": "!!SOP!!",
+                                  "oprelative": ".", "cook_dependent": "1"}
+                    spare_parm.setHelp(spare_input_help)
+                    spare_parm.setTags(spare_tags)
+                    self.parm_group.append(spare_parm)
+                    self.parm_node.setParmTemplateGroup(self.parm_group, rename_conflicting_parms=True)
+                    self.parm_node.parm(spare_parm.name()).set(rel_path)
+            # when we don't need a spare reference, we just get relative path to counter node.
+
+            else:
+                counter_path = self.parm_node.relativePathTo(hou.node(loop_counter_env))
+
+            # Create UI menu displaying all parameters that are the same size of loop multiparm
+            multiparms_obj = hou.parm(multiparm_env)
+            valid_multiparms = {parm_template.name(): parm_template.label() for parm_template in multiparms_obj.parmTemplate().parmTemplates()
+                              if len(self.parms) == parm_template.numComponents()}
+            naming_schemes = {parm_template.name(): parm_template.namingScheme() for parm_template in multiparms_obj.parmTemplate().parmTemplates()}
+
+            menu_entries = [f"{entry}: {valid_multiparms[entry]}" for entry in valid_multiparms]
+            selection_parm = hou.ui.selectFromList(menu_entries, exclusive=True, title="Select parameter to reference")
+
+            if selection_parm:
+                # Create UI menu displaying all detail attributes of counter node, this will determine
+                # attribute referenced in expression.
+
+                mp_meta_obj = hou.node(loop_counter_env)
+                mp_meta_geo = mp_meta_obj.geometry()
+                counter_attribs = set(mp_meta_geo.generateAttribMenu(hou.attribType.Global, hou.attribData.Int, max_size=1))
+                menu_entries = {}
+                # for each attribute, we can offset them in both directions by 1
+
+                for attrib in counter_attribs:
+                    if spare:
+                        value = f"detail({(-(counter_path+1))},\"{attrib}\",0)"
+                    else:
+                        value = f"detail(\"{counter_path}\",\"{attrib}\",0)"
+                    menu_entries[attrib] = value
+
+                    menu_entries[f"{attrib} + 1"] = f"({value} + 1)"
+                    menu_entries[f"{attrib} - 1"] = f"({value} - 1)"
+
+                selection_attrib = hou.ui.selectFromList(list(menu_entries.keys()), exclusive=True,
+                                                       title="Select counter attribute")
+
+                # set expression
+                if selection_attrib:
+                    sel_parm = list(valid_multiparms.keys())[selection_parm[0]]
+                    naming_scheme = naming_schemes[sel_parm].name().lower()
+
+                    sel_counter = menu_entries[tuple(menu_entries.keys())[selection_attrib[0]]]
+                    rel_path = self.parm_node.relativePathTo(hou.parm(multiparm_env).node())
+                    rel_path += "/" + sel_parm.replace("#", "\"")
+
+                    for _index, parm in enumerate(self.parms):
+                        unexpanded_str = ""
+                        if b_append:
+                            if isinstance(parm.parmTemplate(), (hou.FloatParmTemplate, hou.IntParmTemplate, hou.StringParmTemplate)):
+                                try:
+                                    unexpanded_str = parm.expression()
+                                except hou.OperationFailed:
+                                    unexpanded_str = parm.eval()
+
+                        if not isinstance(self.parm_template, hou.StringParmTemplate):
+                            if len(self.parms) == 1:
+                                parm.setExpression(
+                                    f"{unexpanded_str} ch(\"{rel_path} + {sel_counter})", hou.exprLanguage.Hscript)
+                            else:
+                                if naming_scheme == "base1":
+                                    parm.setExpression(
+                                        f"{unexpanded_str}ch(\"{rel_path} + {sel_counter} + {_index+1})",
+                                        hou.exprLanguage.Hscript)
+
+                                else:
+                                    parm.setExpression(
+                                        f"{unexpanded_str}ch(\"{rel_path} + {sel_counter} + {naming_scheme[_index]})",
+                                        hou.exprLanguage.Hscript)
+
+                        else:
+                            if len(self.parms) == 1:
+                                parm.set(
+                                    f"{unexpanded_str} `chs(\"{rel_path} + {sel_counter})`",
+                                    hou.exprLanguage.Hscript)
+                            else:
+                                if naming_scheme == "base1":
+                                    print("yes")
+                                    parm.set(
+                                        f"{unexpanded_str} `chs(\"{rel_path} + {sel_counter} + {_index+1})",
+                                        hou.exprLanguage.Hscript)
+                                else:
+                                    parm.set(
+                                        f"{unexpanded_str} `chs(\"{rel_path} + {sel_counter} + {naming_scheme[_index]})",
+                                        hou.exprLanguage.Hscript)
+
+
     def create_multiparm_reference(self):
         # creates expression referencing multiparm folder index
         if not self.get_multiparm_folder.containingFolders() and self.multiparm_folder:

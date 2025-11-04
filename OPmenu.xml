@@ -240,11 +240,21 @@ if mp_folder:
 ]]>             </scriptCode>
             </scriptItem>
 
+<!-- SET AS LOOP COUNTER -->
+            <scriptItem id = "MASSE_set_loop_counter">
+                <label>Set as loop counter</label>
+                <scriptCode><![CDATA[
+from MASSE_tools import parm_utils as MASSE_parm_utils
+counter_node = kwargs["node"]
+node_path = counter_node.path()
+hou.putenv("MASSE_LOOP_COUNTER_NODE", node_path)
+]]>             </scriptCode>
+            </scriptItem>
 
 <!-- JUMP TO MULTIPARM COUNTER -->
 
             <scriptItem id = "MASSE_locate_multiparm_counter">
-                <label>Locate  multiparm counter node</label>
+                <label>Locate multiparm counter node</label>
 <expression>
 <![CDATA[
 if hou.getenv("MASSE_MULTIPARM_COUNTER_NODE"):

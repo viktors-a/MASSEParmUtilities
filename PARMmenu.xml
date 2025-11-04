@@ -166,6 +166,72 @@ hdefereval.executeDeferred(runLater)
 <separatorItem/>
 
 
+                <scriptItem id = "MASSE_set_as_loop_parameter">
+                    <label>Set as loop multiparm</label>
+<expression><![CDATA[
+parm_temp = kwargs["parms"][0].parmTemplate()
+if isinstance(parm_temp, hou.FolderParmTemplate):
+    if not parm_temp.isActualFolder():
+        return True
+return False
+]]></expression>
+                <scriptCode><![CDATA[
+def runLater():
+    parms = kwargs["parms"]
+    parm_path = parms[0].path()
+    if parm_path:
+        hou.putenv("MASSE_LOOP_MULTIPARM", parm_path)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+
+]]>             </scriptCode>
+            </scriptItem>
+                <scriptItem id = "MASSE_reference_loop_param_spare">
+                    <label>Reference loop parameter(spare)</label>
+
+<expression><![CDATA[
+multiparm_env = hou.getenv("MASSE_LOOP_MULTIPARM")
+loop_counter_env = hou.getenv("MASSE_LOOP_COUNTER_NODE")
+if multiparm_env and loop_counter_env:
+    if hou.parm(multiparm_env) and hou.node(loop_counter_env):
+        return True
+return False
+]]></expression>
+
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.MultiparmUtils(kwargs).reference_loop_parameter()
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+
+            </scriptItem>
+
+                <scriptItem id = "MASSE_reference_loop_param_relative">
+                    <label>Reference loop parameter(relative)</label>
+<expression><![CDATA[
+multiparm_env = hou.getenv("MASSE_LOOP_MULTIPARM")
+loop_counter_env = hou.getenv("MASSE_LOOP_COUNTER_NODE")
+if multiparm_env and loop_counter_env:
+    if hou.parm(multiparm_env) and hou.node(loop_counter_env):
+        return True
+return False
+]]></expression>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import parm_utils as MASSE_parm_utils
+    MASSE_parm_utils.MultiparmUtils(kwargs).reference_loop_parameter(False)
+import hdefereval
+hdefereval.executeDeferred(runLater)
+
+]]>             </scriptCode>
+            </scriptItem>
+
+
+
 <separatorItem/>
 
 <!-- SET MULTIPARM COUNTER -->
@@ -291,6 +357,13 @@ MASSE_parm_utils.parmUtils.create_spare_parm_from_expression(kwargs["parms"],hou
 
             <scriptItem id = "MASSE_change_range">
                 <label>Change spare parm range</label>
+<expression>
+<![CDATA[
+if kwargs["parms"][0].isSpare():
+    return True
+return False
+]]>
+</expression>
                 <scriptCode><![CDATA[
 from MASSE_tools import parm_utils as MASSE_parm_utils
 MASSE_parm_utils.parmUtils.change_parm_range(kwargs["parms"])
