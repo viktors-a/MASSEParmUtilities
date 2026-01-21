@@ -1233,45 +1233,96 @@ def add_nodes_to_object_merge(kwargs):
 
 
 def spilt_by_unique_attrib(kwargs):
-    """Create blast node for every unique string in a string attrib, and blast geometry by that string"""
+    """Create blast node for each unique attribute primitive/point attribute."""
     node = kwargs["node"]
     geo = node.geometry()
-    # get point and prim attribs
+    networkeditor = kwargs["networkeditor"]
+
+    # Get point and prim attributes and reference index of 'grouptype' parameter.
     point_attribs = (geo.pointAttribs(), 3)
     prim_attribs = (geo.primAttribs(), 4)
+
+    # Only prim/point and size '1' attributes are valid.
     valid_attribs = []
-    # loop through both tuples
+
+    # Loop through both attrib types
     for attrib_tuple, menu_index in (point_attribs, prim_attribs):
         for attrib in attrib_tuple:
             attrib_size = attrib.size()
             attrib_data_type = attrib.dataType()
-            # check if attrib is string type and size is 1
-            if attrib_data_type == hou.attribData.String and attrib_size == 1:
+
+            if attrib_data_type in [hou.attribData.String, hou.attribData.Int,hou.attribData.Float] and attrib_size == 1:
                 attrib_name = attrib.name()
-                unique_strs = attrib.strings()
-                valid_attribs.append((attrib_name, menu_index, unique_strs))
+                if attrib_data_type == hou.attribData.String:
+                    unique_vals = attrib.strings()
+                    valid_attribs.append((attrib_name, menu_index, unique_vals))
+
+            # Getting all unique values for int and float attributes requres iterating of geometry.
+                else:
+                    unique_vals = set()
+                    if attrib.type() == hou.attribType.Prim:
+                        for prim in attrib.geometry().iterPrims():
+                            unique_vals.add(prim.attribValue(attrib_name))
+
+                    if attrib.type() == hou.attribType.Point:
+                        for point in attrib.geometry().iterPoints():
+                            unique_vals.add(point.attribValue(attrib_name))
+                    # Sort values in ascending order
+                    unique_vals = sorted(unique_vals)
+                    valid_attribs.append((attrib_name, menu_index, unique_vals))
+
     if valid_attribs:
         menu_entries = [f"{entry[0]} - {len(entry[2])} Unique" for entry in valid_attribs]
-        selection = hou.ui.selectFromList(menu_entries, exclusive=True, title="Select Attribute to Split By")
+        selection = hou.ui.selectFromList(menu_entries, exclusive=True, title="Select Attribute to Blast By")
         if selection:
             selected_menu_index = valid_attribs[selection[0]]
-            attrib_name, menu_index, unique_strs = selected_menu_index
-            for unique_str in unique_strs:
-                # remove invalid characters from string
-                node_name = re.sub(r"[^a-zA-Z0-9_]", "_", unique_str)
-                # try to det node with same name
-                try:
-                    blast_node = node.parent().createNode("blast", node_name)
-                except hou.OperationFailed:
-                    blast_node = node.parent().createNode("blast")
-                blast_expr = f"@{attrib_name}=\"{unique_str}\""
-                blast_node.parm("group").set(blast_expr)
-                blast_node.parm("grouptype").set(menu_index)
-                # make sure negate is on
-                blast_node.parm("negate").set(1)
-                # set input to blast node
-                blast_node.setInput(0, node)
-                blast_node.moveToGoodPosition()
+            attrib_name, menu_index, unique_vals = selected_menu_index
+
+            # Warn if user want to split by large amount of unique values.
+            if len(unique_vals) > 1000:
+                warning = hou.ui.displayMessage("This is a bad idea! Continue?", buttons=("Punch it!", "Cancel"),
+                                                severity=hou.severityType.Warning, close_choice=0)
+                if warning == 1:
+                    return False
+
+            # Check for any 'blast' nodes connected to node and store all 'Group' parameter values. This will
+            # allow us to only create new blast nodes for values not blasted.
+            blasted = [node.parm("group").evalAsString().replace("'", "") for node in node.outputs() if node.type().name() == "blast"]
+            created_nodes = []
+            for unique_val in unique_vals:
+                blast_node = None
+
+                # Blast node name can use limited character set.
+                blast_name = f"{attrib_name}_{unique_val}"
+                blast_name = re.sub(r"[^a-zA-Z0-9_-]", "_", blast_name)
+
+                blast_expr = f"@{attrib_name}=\"{unique_val}\""
+                if blast_expr not in blasted:
+                    try:
+                        blast_node = node.parent().createNode("blast", blast_name)
+                    except hou.OperationFailed:
+                        pass
+                    if not blast_node:
+                        blast_node = node.parent().createNode("blast")
+                    blast_node.parm("group").set(blast_expr)
+                    blast_node.parm("grouptype").set(menu_index)
+                    # make sure negate is on
+                    blast_node.parm("negate").set(1)
+                    # set input to blast node
+                    blast_node.setInput(0, node)
+                    created_nodes.append(blast_node)
+
+            # Center all new nodes below the node menu was invoked from.
+            parent_p = node.position()
+            num_nodes = len(created_nodes)
+            offset_dir = {node: _index - num_nodes/2 for _index, node in enumerate(created_nodes)}
+            networkeditor.clearAllSelected()
+            for node in offset_dir:
+                offset = offset_dir[node]
+                new_p = hou.Vector2(parent_p[0]+offset*3, parent_p[1]-2)
+                node.setPosition(new_p)
+                node.setCurrent(True)
+            return True
 
 
 def spilt_by_groups(kwargs):

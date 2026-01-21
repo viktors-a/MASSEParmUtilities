@@ -66,8 +66,8 @@ hdefereval.executeDeferred(runLater)
 
 <separatorItem/>
 <!-- PARM JUMP TO -->
-            <scriptItem id="MASSE_split_by_unique_string">
-            <label>Split by unique attibute string</label>
+            <scriptItem id="MASSE_blast_by_unique_attrib_val">
+            <label>Blast by unique attibute value</label>
                 <expression><![CDATA[
 selected_nodes = hou.selectedNodes()
 for node in selected_nodes:
