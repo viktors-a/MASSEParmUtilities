@@ -398,6 +398,41 @@ import hdefereval
 hdefereval.executeDeferred(runLater)
 ]]>             </scriptCode>
                 </scriptItem>
+
+
+<!-- Extracts material path from unreal generated clipboard when copying material assigned to mesh. -->
+            <scriptItem id = "MASSE_unreal_paste_mtl_path">
+                <label>UNREAL paste material path</label>
+<expression>
+<![CDATA[
+if isinstance(kwargs["parms"][0].parmTemplate(), hou.StringParmTemplate):
+    if len(kwargs["parms"]) == 1:
+        return True
+else:
+    return False
+]]>
+
+</expression>
+                <scriptCode><![CDATA[
+def runLater():
+    from MASSE_tools import pyperclip
+    import json
+    parm = kwargs["parms"][0]
+    clipboard = pyperclip.paste()
+    if clipboard:
+        try:
+            clipboard_json = json.loads(clipboard)
+            if "materialInterface" in clipboard_json:
+                parm.set(clipboard_json["materialInterface"])
+        except:
+            pass
+
+import hdefereval
+hdefereval.executeDeferred(runLater)
+]]>             </scriptCode>
+                </scriptItem>
+
+
 <!-- String replace with environment variable  -->
             <scriptItem id = "MASSE_string_replace">
                 <label>Find environment variables in string</label>
